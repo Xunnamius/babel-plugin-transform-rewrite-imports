@@ -1,41 +1,182 @@
 {
-  "name": "babel-plugin-add-import-extension",
-  "version": "1.5.1",
-  "description": "A babel plugin to add extension on project modules imports",
-  "main": "src/plugin.js",
-  "scripts": {
-    "test": "jest tests",
-    "lint": "standard",
-    "lint:fix": "standard --fix"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git://git@github.com:karlprieb/babel-plugin-add-import-extension.git"
-  },
+  "name": "babel-plugin-transform-rewrite-imports",
+  "version": "1.0.0",
+  "description": "Add an extension to import specifiers that do not already have one, replace the extensions of those that do, or even rewrite specifiers entirely.",
   "keywords": [
     "babel",
     "plugin",
-    "import",
+    "map",
     "export",
+    "typescript",
+    "extension",
+    "commonjs",
+    "extensions",
+    "import",
     "transform",
-    "extension"
+    "esm",
+    "add",
+    "replace",
+    "append",
+    "mjs",
+    "cjs",
+    "require",
+    "es",
+    "module",
+    "dynamic",
+    "rewrite"
   ],
-  "author": "Karl Prieb <karl@prieb.me>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/karlprieb/babel-plugin-add-import-extension/issues"
+  "homepage": "https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports"
   },
-  "homepage": "https://github.com/karlprieb/babel-plugin-add-import-extension",
-  "peerDependencies": {
-    "@babel/core": ">=7.0.0"
+  "license": "MIT",
+  "author": "Xunnamius",
+  "sideEffects": false,
+  "type": "commonjs",
+  "exports": {
+    ".": {
+      "types": "./dist/types/src/index.d.ts",
+      "module": "./dist/esm/index.mjs",
+      "node": "./dist/cjs/index.js",
+      "default": "./dist/esm/index.mjs"
+    },
+    "./package": "./package.json",
+    "./package.json": "./package.json"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/types/src/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "/dist",
+    "/LICENSE",
+    "/package.json",
+    "/README.md"
+  ],
+  "scripts": {
+    "__test-repeat-all": "echo 'Repeating test suite [initializing]...'; (i=0; while [ \"$((( i += 1 ) <= 100 ))\" -ne 0 ]; do sleep 0.1 && echo \"\\r\\033[1A\\033[0KRepeating test suite [run $i/100]...\" && JEST_SILENT_REPORTER_SHOW_WARNINGS=true NODE_ENV=test jest --reporters=jest-silent-reporter || exit; done) && echo \"All tests passed! Congrats!\"",
+    "__test-repeat-unit": "echo 'Repeating test suite [initializing]...'; (i=0; while [ \"$((( i += 1 ) <= 100 ))\" -ne 0 ]; do sleep 0.1 && echo \"\\r\\033[1A\\033[0KRepeating test suite [run $i/100]...\" && JEST_SILENT_REPORTER_SHOW_WARNINGS=true NODE_ENV=test jest --reporters=jest-silent-reporter --testPathIgnorePatterns test/integration-*.test.ts dist || exit; done) && echo \"All tests passed! Congrats!\"",
+    "build": "npm run build-dist --",
+    "build-changelog": "conventional-changelog --outfile CHANGELOG.md --config conventional.config.js --release-count 0 --skip-unstable && (if [ \"$CHANGELOG_SKIP_TITLE\" != 'true' ]; then { node -e 'console.log(require(\"./conventional.config.js\").changelogTitle)'; cat CHANGELOG.md; } > CHANGELOG.md.ignore && mv CHANGELOG.md.ignore CHANGELOG.md; fi) && remark -o --use reference-links --use gfm --use frontmatter CHANGELOG.md && prettier --write CHANGELOG.md",
+    "build-dist": "NODE_ENV=production tsc --project tsconfig.types.json --incremental false && tsconfig-replace-paths --project tsconfig.types.json && NODE_ENV=production-cjs babel src --extensions .ts --out-dir dist/cjs",
+    "build-docs": "if [ -r ./next.config.js ]; then typedoc --plugin typedoc-plugin-markdown --tsconfig tsconfig.docs.json --out docs --readme none lib src test types external-scripts --exclude '**/*.test.*' --exclude external-scripts/bin; else ENTRY=`node -e 'const entry = require(\"./package.json\").config?.docs?.entry; if(!entry) throw new Error(\"\\\"config.docs.entry\\\" key is not defined in package.json\"); console.log(entry)'` && echo 'Entry file:' \"$ENTRY\" && typedoc --plugin typedoc-plugin-markdown --tsconfig tsconfig.docs.json --out docs --readme none $ENTRY && find docs -name '*.md' -exec sed -i -e 's/Project: //g' {} + && sed -i -e 1,4d docs/README.md; fi && find docs -name '*.md' -exec sed -i -e 's/`__namedParameters`/`\\(destructured\\)`/g' {} + && find docs -name '*.md' -exec sed -i -E 's/`__namedParameters\\.([^`]+)`/`\\({ \\1 }\\)`/g' {} +",
+    "build-externals": "NODE_ENV=production-external babel external-scripts --extensions .ts --out-dir external-scripts/bin --out-file-extension .mjs",
+    "clean": "git ls-files --exclude-standard --ignored --others --directory | grep -vE '^((\\.(env|vscode|husky))|next-env\\.d\\.ts|node_modules)($|\\/)' | xargs -p rm -rf",
+    "format": "sort-package-json && remark -o --use reference-links --use gfm --use frontmatter '{{,.}*.md,!(node_modules)/**/{,.}*.md,.*/**/{,.}*.md}' && prettier --write '{{,.}*.md,!(node_modules)/**/{,.}*.md,.*/**/{,.}*.md}' && if [ -z \"$ALLOW_DISABLED_LINKS\" ] && grep -qR --exclude-dir=node_modules --include='*.md' '\\\\\\[[^\\]*\\]\\\\' .; then echo '---\nWARNING: disabled links were found in the following files:'; grep -R --color=always --exclude-dir=node_modules --include='*.md' '\\\\\\[[^\\]*\\]\\\\' .; echo '(to ignore this error, run this command again with ALLOW_DISABLED_LINKS=1)'; exit 1; fi",
+    "lint": "stdbuf -i0 -o0 -e0 tsc --project tsconfig.lint.json; X=$?; stdbuf -i0 -o0 -e0 eslint --parser-options=project:tsconfig.lint.json src; Y=$?; remark --quiet --use gfm --use frontmatter --use lint-final-newline --use lint-no-auto-link-without-protocol --use lint-no-blockquote-without-marker --use lint-ordered-list-marker-style --use lint-hard-break-spaces --use lint-no-duplicate-definitions --use lint-no-heading-content-indent --use lint-no-inline-padding --use lint-no-undefined-references --use lint-no-unused-definitions --use validate-links '{{,.}*.md,!(node_modules)/**/{,.}*.md,.*/**/{,.}*.md}'; Z=$?; [ $X -eq 0 ] && [ $Y -eq 0 ] && [ $Z -eq 0 ]",
+    "lint-all": "stdbuf -i0 -o0 -e0 tsc --project tsconfig.eslint.json; X=$?; stdbuf -i0 -o0 -e0 eslint --parser-options=project:tsconfig.eslint.json .; Y=$?; remark --quiet --use gfm --use frontmatter --use lint-final-newline --use lint-no-auto-link-without-protocol --use lint-no-blockquote-without-marker --use lint-ordered-list-marker-style --use lint-hard-break-spaces --use lint-no-duplicate-definitions --use lint-no-heading-content-indent --use lint-no-inline-padding --use lint-no-undefined-references --use lint-no-unused-definitions --use validate-links '{{,.}*.md,!(node_modules)/**/{,.}*.md,.*/**/{,.}*.md}'; Z=$?; [ $X -eq 0 ] && [ $Y -eq 0 ] && [ $Z -eq 0 ]",
+    "list-tasks": "node -e 'console.log(Object.keys(require(\"./package.json\").scripts).join(\"\\n\"))'",
+    "prepare": "if [ -z \"$CI\" ] && ([ -z \"$NODE_ENV\" ] || [ \"$NODE_ENV\" = \"development\" ]); then husky install; else echo 'skipped installing husky git hooks'; fi",
+    "test": "npm run test-unit --",
+    "test-all": "NODE_ENV=test jest $JEST_CLI --coverage",
+    "test-integration": "NODE_ENV=test jest $JEST_CLI test/integration-*.test.ts* --testPathIgnorePatterns dist test/unit-*.test.ts",
+    "test-integration-client": "NODE_ENV=test jest $JEST_CLI test/integration-client*.test.ts* --testPathIgnorePatterns dist",
+    "test-integration-externals": "NODE_ENV=test jest $JEST_CLI test/integration-external*.test.ts* --testPathIgnorePatterns dist",
+    "test-integration-node": "NODE_ENV=test jest $JEST_CLI test/integration-node*.test.ts* --testPathIgnorePatterns dist",
+    "test-repeat-all": "npm run __test-repeat-all --silent",
+    "test-repeat-unit": "npm run __test-repeat-unit --silent",
+    "test-unit": "NODE_ENV=test jest $JEST_CLI --coverage --collectCoverageFrom 'src/**/*.ts*' --collectCoverageFrom 'lib/**/*.ts*' --collectCoverageFrom 'external-scripts/**/*.ts*' --testPathIgnorePatterns test/integration-*.test.ts* dist"
+  },
+  "config": {
+    "docs": {
+      "entry": "./src/index.ts"
+    }
   },
   "dependencies": {
-    "@babel/helper-plugin-utils": "^7.13.0"
+    "@babel/template": "^7.18.10",
+    "@babel/types": "^7.19.0",
+    "debug": "^4.3.4"
   },
   "devDependencies": {
-    "@babel/core": "^7.13.15",
-    "@babel/plugin-syntax-typescript": "^7.12.13",
-    "jest": "^26.6.3",
-    "standard": "^16.0.3"
+    "@babel/cli": "^7.18.10",
+    "@babel/eslint-parser": "^7.19.1",
+    "@babel/plugin-proposal-export-default-from": "^7.18.10",
+    "@babel/plugin-proposal-function-bind": "^7.18.9",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.18.6",
+    "@babel/preset-env": "^7.19.1",
+    "@babel/preset-typescript": "^7.18.6",
+    "@commitlint/cli": "^17.1.2",
+    "@commitlint/config-conventional": "^17.1.0",
+    "@ergodark/types": "^1.0.17",
+    "@semantic-release/changelog": "^6.0.1",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/babel__helper-plugin-utils": "^7.10.0",
+    "@types/confusing-browser-globals": "^1.0.0",
+    "@types/debug": "^4.1.7",
+    "@types/jest": "^29.0.3",
+    "@types/node": "^18.7.20",
+    "@typescript-eslint/eslint-plugin": "^5.38.0",
+    "@typescript-eslint/parser": "^5.38.0",
+    "@xunnamius/conventional-changelog-projector": "^1.1.1",
+    "babel-jest": "^29.0.3",
+    "babel-loader": "^8.2.5",
+    "babel-plugin-explicit-exports-references": "^1.0.2",
+    "babel-plugin-module-resolver": "^4.1.0",
+    "babel-plugin-source-map-support": "^2.2.0",
+    "babel-plugin-tester": "^10.1.0",
+    "babel-plugin-transform-default-named-imports": "^1.2.2",
+    "babel-plugin-transform-rename-import": "^2.3.0",
+    "confusing-browser-globals": "^1.0.11",
+    "conventional-changelog-cli": "^2.2.2",
+    "del": "^7.0.0",
+    "dotenv": "^16.0.2",
+    "eslint": "^8.24.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-import-resolver-babel-module": "^5.3.1",
+    "eslint-import-resolver-typescript": "^3.5.1",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jest": "^27.0.4",
+    "eslint-plugin-module-resolver": "^1.5.0",
+    "execa": "^5.1.1",
+    "glob": "^8.0.3",
+    "husky": "^8.0.1",
+    "jest": "^29.0.3",
+    "jest-circus": "^29.0.3",
+    "jest-extended": "^3.1.0",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "remark-cli": "^11.0.0",
+    "remark-frontmatter": "^4.0.1",
+    "remark-gfm": "^3.0.1",
+    "remark-lint-final-newline": "^2.1.1",
+    "remark-lint-hard-break-spaces": "^3.1.1",
+    "remark-lint-no-auto-link-without-protocol": "^3.1.1",
+    "remark-lint-no-blockquote-without-marker": "^5.1.1",
+    "remark-lint-no-duplicate-definitions": "^3.1.1",
+    "remark-lint-no-heading-content-indent": "^4.1.1",
+    "remark-lint-no-inline-padding": "^4.1.1",
+    "remark-lint-no-undefined-references": "^4.2.0",
+    "remark-lint-no-unused-definitions": "^3.1.1",
+    "remark-lint-ordered-list-marker-style": "^3.1.1",
+    "remark-reference-links": "^6.0.1",
+    "remark-validate-links": "^12.1.0",
+    "semantic-release": "https://xunn.at/semantic-release-atam",
+    "semver": "^7.3.7",
+    "simple-git": "^3.14.1",
+    "sort-package-json": "^1.57.0",
+    "source-map-support": "^0.5.21",
+    "spellchecker": "^3.7.1",
+    "strip-ansi": "^6.0.1",
+    "text-extensions": "^2.4.0",
+    "tsconfig-replace-paths": "^0.0.11",
+    "type-fest": "^3.0.0",
+    "typedoc": "^0.23.15",
+    "typedoc-plugin-markdown": "^3.13.6",
+    "typescript": "^4.8.3",
+    "unique-filename": "^2.0.1"
+  },
+  "peerDependencies": {
+    "@babel/core": ">=7.19.1"
+  },
+  "engines": {
+    "node": "^14.20.0 || ^16.16.0 || >=18.5.0"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
