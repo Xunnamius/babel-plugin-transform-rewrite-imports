@@ -111,7 +111,7 @@
     "@types/jest": "^29.0.3",
     "@types/node": "^18.7.20",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
-    "@typescript-eslint/parser": "^5.38.0",
+    "@typescript-eslint/parser": "^5.41.0",
     "@xunnamius/conventional-changelog-projector": "^1.1.1",
     "babel-jest": "^29.0.3",
     "babel-loader": "^8.2.5",
