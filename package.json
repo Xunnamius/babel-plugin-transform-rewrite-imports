@@ -109,7 +109,7 @@
     "@types/confusing-browser-globals": "^1.0.0",
     "@types/debug": "^4.1.7",
     "@types/jest": "^29.0.3",
-    "@types/node": "^18.7.20",
+    "@types/node": "^18.11.13",
     "@typescript-eslint/eslint-plugin": "^5.38.0",
     "@typescript-eslint/parser": "^5.38.0",
     "@xunnamius/conventional-changelog-projector": "^1.1.1",
