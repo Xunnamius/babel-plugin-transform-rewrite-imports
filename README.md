@@ -18,21 +18,23 @@
 
 # babel-plugin-transform-rewrite-imports
 
-A babel plugin that reliably adds extensions to import specifiers that do not
-already have one, selectively replaces extensions of specifiers that do, and can
-even rewrite specifiers entirely if desired. This plugin comes in handy in
-situations like transpiling TypeScript source to ESM while maintaining the
-ergonomic advantage of TypeScript/NodeJS extensionless imports.
+A babel plugin that reliably adds extensions to import (and export) specifiers
+that do not already have one, selectively replaces extensions of specifiers that
+do, and can even rewrite specifiers entirely if desired. This plugin comes in
+handy in situations like transpiling TypeScript source to ESM while maintaining
+the ergonomic advantage of TypeScript/NodeJS extensionless imports.
 
 This plugin started off as a fork of
 [babel-plugin-transform-rewrite-imports][link-npm] that functions [more
-consistently][1], including support for dynamic imports, mapping between
-multiple extensions, and [reliably ignoring extensions that should not be
-replaced][2].
+consistently][1], including support for `require` and dynamic `import()`,
+replacing multiple extensions via mapping, and [reliably ignoring extensions
+that should not be replaced][2].
 
 This plugin is similar in intent to [babel-plugin-replace-import-extension][3]
-and [babel-plugin-transform-rename-import][4] but with the ability to append
-extensions to import specifiers that do not already have one.
+and [babel-plugin-transform-rename-import][4] but with the ability to rewrite
+both `require` and dynamic `import()` statements, memoize rewrite function AST
+and options as globals for substantial comparative output size reduction, and
+append extensions to import specifiers that do not already have one.
 
 ## Install
 
@@ -40,13 +42,18 @@ extensions to import specifiers that do not already have one.
 npm install --save-dev babel-plugin-transform-rewrite-imports
 ```
 
-And in your `babel.config.js`:
+And integrate the following snippet into your babel configuration:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    // See below for configuration instructions
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        // See below for configuration instructions and examples
+      }
+    ]
+  ]
 };
 ```
 
@@ -61,14 +68,29 @@ npx babel src --out-dir dist
 By default this plugin does not affect babel's output. You must explicitly
 configure this extension before any specifier will be rewritten.
 
+Available options are:
+
+```typescript
+appendExtension?: string;
+recognizedExtensions?: string[];
+replaceExtensions?: Record<string, string>;
+silent?: boolean;
+verbose?: boolean;
+```
+
 To append an extension to all relative import specifiers that do not already
 have a recognized extension, use `appendExtension`:
 
-```JavaScript
+```typescript
 module.exports = {
-  ['babel-plugin-transform-rewrite-imports', {
-    appendExtension: '.mjs'
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        appendExtension: '.mjs'
+      }
+    ]
+  ]
 };
 ```
 
@@ -80,12 +102,17 @@ module.exports = {
 What is and is not considered a "recognized extension" is determined by
 `recognizedExtensions`:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    appendExtension: '.mjs',
-    recognizedExtensions: ['.js']
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        appendExtension: '.mjs',
+        recognizedExtensions: ['.js']
+      }
+    ]
+  ]
 };
 ```
 
@@ -100,109 +127,167 @@ default.
 > Note that specifying a custom value for `recognizedExtensions` overwrites the
 > default value entirely.
 
-You can also replace one or more existing extensions by specifying a replacement
-map:
+You can also replace one or more existing extensions in specifiers using a
+replacement map:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    replace: {
-      // Replacements are evaluated **in order**! That means if the following
-      // two keys were listed in reverse order, .node.js would become
-      // .node.mjs instead of .cjs
-      '.node.js': '.cjs',
-      // Since .js is in recognizedExtensions, file.js would not be rewritten.
-      // Instead, since .js is a key of replace, file.js becomes file.mjs
-      '.js': '.mjs',
-    }
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        replaceExtensions: {
+          // Replacements are evaluated **in order**, stopping on the first match.
+          // That means if the following two keys were listed in reverse order,
+          // .node.js would become .node.mjs instead of .cjs
+          '.node.js': '.cjs',
+          '.js': '.mjs'
+        }
+      }
+    ]
+  ]
 };
 ```
 
 These configurations can be combined to rewrite many imports at once. For
 instance, if you wanted to replace certain extensions and append only when no
-known or listed extension is specified:
+recognized or listed extension is specified:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    appendExtension: '.mjs',
-    replace: {
-      '.node.js': '.cjs',
-      '.js': '.mjs',
-    }
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        appendExtension: '.mjs',
+        replaceExtensions: {
+          '.node.js': '.cjs',
+          // Since .js is in recognizedExtensions by default, file.js would normally
+          // be ignored. However, since .js is mapped to .mjs in the
+          // replaceExtensions map, file.js becomes file.mjs
+          '.js': '.mjs'
+        }
+      }
+    ]
+  ]
 };
 ```
 
-`appendExtension` and `replace` accept any string, not just those that begin
-with `.`; additionally, `replace` accepts _regular expressions_. This allows you
-to partially or entirely rewrite a specifier:
+`appendExtension` and `replaceExtensions` accept any suffix, not just those that
+begin with `.`; additionally, `replaceExtensions` accepts _regular expressions_.
+This allows you to partially or entirely rewrite a specifier rather than just
+its extension:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    appendExtension: '.mjs',
-    // Add .css to recognizedExtensions so .mjs isn't automatically appended
-    recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
-    replace: {
-      '.node.js': '.cjs',
-      '.js': '.mjs',
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        appendExtension: '.mjs',
+        // Add .css to recognizedExtensions so .mjs isn't automatically appended
+        recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+        replaceExtensions: {
+          '.node.js': '.cjs',
+          '.js': '.mjs',
 
-      // The following key replaces the entire specifier when matched
-      '^package$': `${__dirname}/package.json`,
-      // If .css wasn't in recognizedExtensions, my-utils/src/file.less would
-      // become my-utils/src/file.css.mjs instead of my-utils/src/file.css
-      '(.+?)\\.less$': '$1.css'
-    }
-  }]
+          // The following key replaces the entire specifier when matched
+          '^package$': `${__dirname}/package.json`,
+          // If .css wasn't in recognizedExtensions, my-utils/src/file.less would
+          // become my-utils/src/file.css.mjs instead of my-utils/src/file.css
+          '(.+?)\\.less$': '$1.css'
+        }
+      }
+    ]
+  ]
 };
 ```
 
-> If a key of `replace` begins with `^` _or_ ends with `$`, it is considered a
-> regular expression instead of an extension. Regular expression replacements
-> support substitutions as well (e.g. `$1`, `$2`, etc).
+> If a key of `replaceExtensions` begins with `^` _or_ ends with `$`, it is
+> considered a regular expression instead of an extension. Regular expression
+> replacements support substitutions of capture groups as well (e.g. `$1`, `$2`,
+> etc).
 
-`replace` is evaluated and replacements made before `appendExtension` is
-considered. This means an extensionless import specifier could be rewritten by
-`replace` to have an extension, which would then be ignored by `appendExtension`
-when normally it would have been considered.
+`replaceExtensions` is evaluated and replacements made before `appendExtension`
+is appended to specifiers with unrecognized or missing extensions. This means an
+extensionless import specifier could be rewritten by `replaceExtensions` to have
+a recognized extension, which would then be ignored instead of having
+`appendExtension` appended to it.
 
 ## Examples
 
-With the following configuration:
+With the following snippet integrated into your babel configuration:
 
-```JavaScript
+```typescript
 module.exports = {
-  plugins: ['babel-plugin-transform-rewrite-imports', {
-    appendExtension: '.mjs',
-    recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
-    replace: {
-      '.ts': '.mjs',
-      '^package$': `${__dirname}/package.json`,
-      '(.+?)\\.less$': '$1.css'
-    }
-  }]
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        appendExtension: '.mjs',
+        recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+        replaceExtensions: {
+          '.ts': '.mjs',
+          '^package$': `${__dirname}/package.json`,
+          '(.+?)\\.less$': '$1.css'
+        }
+      }
+    ]
+  ]
 };
 ```
 
 The following source:
 
-```JavaScript
+```typescript
+/* file: src/index.ts */
 import { name as pkgName } from 'package';
+import { primary } from '.';
+import { secondary } from '..';
+import { tertiary } from '../..';
+import dirImport from './some-dir/';
 import jsConfig from './jsconfig.json';
 import projectConfig from './project.config.cjs';
 import { add, double } from './src/numbers';
 import { curry } from './src/typed/curry.ts';
 import styles from './src/less/styles.less';
 
+// Note that, unless otherwise configured, babel deletes type-only imports
+import type * as AllTypes from './lib/something.mjs';
+
 export { triple, quadruple } from './lib/num-utils';
+// Note that, unless otherwise configured, babel deletes type-only imports
+export type { NamedType } from './lib/something';
+
+const thing = await import('./thing');
+const anotherThing = require('./another-thing');
+
+const thing2 = await import(someFn(`./${someVariable}`) + '.json');
+const anotherThing2 = require(someOtherVariable);
 ```
 
-Is transformed to:
+Is, depending on your other plugins/settings, transformed into something like:
 
-```JavaScript
+```typescript
+/* file: dist/index.js */
+const _rewrite = (importPath, options) => {
+    ...
+  },
+  _rewrite_options = {
+    appendExtension: '.mjs',
+    recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+    replaceExtensions: {
+      '.ts': '.mjs',
+      '^package$': '/absolute/path/to/project/package.json',
+      '(.+?)\\.less$': '$1.css'
+    }
+  };
+
 import { name as pkgName } from '/absolute/path/to/project/package.json';
+import { primary } from './index.mjs';
+import { secondary } from '../index.mjs';
+import { tertiary } from '../../index.mjs';
+import dirImport from './some-dir/index.mjs';
 import jsConfig from './jsconfig.json';
 import projectConfig from './project.config.cjs';
 import { add, double } from './src/numbers.mjs';
@@ -210,6 +295,19 @@ import { curry } from './src/typed/curry.mjs';
 import styles from './src/less/styles.css';
 
 export { triple, quadruple } from './lib/num-utils.mjs';
+
+const thing = await import('./thing.mjs');
+const anotherThing = require('./another-thing.mjs');
+
+// Requires and dynamic imports with a non-string-literal first argument are
+// transformed into function calls that dynamically return the rewritten string
+
+const thing2 = await import(
+  _rewrite(someFn(`./${someVariable}`) + '.json', _rewrite_options)
+);
+
+const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
+
 ```
 
 ## Documentation
