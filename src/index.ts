@@ -1,169 +1,312 @@
-import { existsSync, lstatSync } from 'node:fs';
-import { resolve, extname, dirname } from 'node:path';
+import { name as pkgName } from 'package';
+import debugFactory from 'debug';
+import template from '@babel/template';
 import * as util from '@babel/types';
 
-import type { PluginObj, PluginPass } from '@babel/core';
+import type { NodePath, PluginObj, PluginPass } from '@babel/core';
+
+const debugNamespace = `${pkgName}:index`;
+const defaultRecognizedExtensions = ['.js', '.jsx', '.mjs', '.cjs', '.json'];
 
 export type Options = {
-  opts: {
-    test?: (string | RegExp)[];
-    include?: (string | RegExp)[];
-    exclude?: (string | RegExp)[];
-    transformBuiltins?: boolean;
-    silent?: boolean;
-    verbose?: boolean;
-    monorepo?: boolean | string;
-  };
+  appendExtension?: string;
+  recognizedExtensions?: string[];
+  replaceExtensions?: Record<string, string>;
+  silent?: boolean;
+  verbose?: boolean;
 };
 
-type State = PluginPass & Options;
+type State = PluginPass & { opts: Options };
 
-const _metadata: {
+const log = debugFactory(debugNamespace);
+const debug = debugFactory(`${debugNamespace}:debug`);
+
+// eslint-disable-next-line no-console
+log.log = console.info.bind(console);
+
+if (!process.env.DEBUG && process.env.NODE_ENV != 'test') {
+  debugFactory.enable(`${debugNamespace},${debugNamespace}:*,-${debugNamespace}:debug`);
+}
+
+const globalMetadata: {
   [path: string]: {
-    total: number;
-    transformed: string[];
-    iTests: RegExp[];
-    eTests: RegExp[];
+    totalImports: number;
+    transformedImports: string[];
   };
 } = {};
 
-// const getMetadata = (state: State) => {
-//   const key = state.filename || '<no path>';
+const getFilenameFromState = (state: State) => state.filename || '<no path>';
 
-//   return (_metadata[key] = _metadata[key] || {
-//     total: 0,
-//     transformed: [],
-//     iTests: [
-//       ...(state.opts.transformBuiltins !== false ? getBuiltinInclusionTests() : []),
-//       ...(state.opts.test?.map(strToRegex) ||
-//         getDefaultInclusionTests(state.opts.monorepo ?? false)),
-//       ...(state.opts.include?.map(strToRegex) || [])
-//     ],
-//     eTests: state.opts.exclude?.map(strToRegex) || []
-//   });
-// };
+const getLocalMetadata = (state: State) => {
+  const key = getFilenameFromState(state);
 
-// const isActiveExtension = (module, observedScriptExtensions) =>
-//   observedScriptExtensions.indexOf(extname(module).replace(/[^a-z]/, '')) > -1;
+  return (globalMetadata[key] = globalMetadata[key] || {
+    totalImports: 0,
+    transformedImports: []
+  });
+};
 
-// const isNodeModule = (module) => {
-//   if (module.startsWith('.') || module.startsWith('/')) {
-//     return false;
-//   }
+/**
+ * This function rewrites an import/require specifier `importPath` given a
+ * `replaceMap` and an `options` object. Throws if `importPath` is not a string.
+ */
+// ! This function is stringified and injected when transforming dynamic imports
+// ! so there must be no references to variables external to the function. Also,
+// ! no coverage data is available since istanbul clobbers the resulting AST.
+// istanbul ignore next
+const rewrite = (
+  importPath: unknown,
+  options: Pick<Options, 'appendExtension' | 'replaceExtensions'> &
+    Required<Pick<Options, 'recognizedExtensions'>>
+) => {
+  if (typeof importPath != 'string') {
+    throw new Error(
+      `rewrite error: expected import specifier of type string, not ${typeof importPath}`
+    );
+  }
 
-//   try {
-//     require.resolve(module);
-//     return true;
-//   } catch (e) {
-//     if (e.code === 'MODULE_NOT_FOUND') {
-//       return false;
-//     }
-//     console.error(e);
-//   }
-// };
+  let finalImportPath = importPath;
+  let replacementMap: [target: RegExp | string, replacement: string] | undefined;
+  // ? https://github.com/microsoft/TypeScript/issues/9998
+  replacementMap = undefined as typeof replacementMap;
 
-// const skipModule = (module, { replace, extension, observedScriptExtensions }) =>
-//   !module.startsWith('.') ||
-//   isNodeModule(module) ||
-//   (replace &&
-//   (isActiveExtension(module, observedScriptExtensions) ||
-//     extname(module) === `.${extension}`)
-//     ? extname(module) === `.${extension}`
-//     : extname(module).length &&
-//       (isActiveExtension(module, observedScriptExtensions) ||
-//         extname(module) === `.${extension}`) &&
-//       extname(module) === `.${extension}`);
+  if (options.replaceExtensions) {
+    Object.entries(options.replaceExtensions).some(([target, replacement]) => {
+      if (target.startsWith('^') || target.endsWith('$')) {
+        const targetRegExp = new RegExp(target);
 
-// const makeDeclaration =
-//   ({
-//     declaration,
-//     args,
-//     replace = false,
-//     extension = 'js',
-//     observedScriptExtensions = ['js', 'ts', 'jsx', 'tsx', 'mjs', 'cjs']
-//   }) =>
-//   (
-//     path,
-//     {
-//       file: {
-//         opts: { filename }
-//       }
-//     }
-//   ) => {
-//     const { node } = path;
-//     const { source, exportKind, importKind } = node;
+        if (targetRegExp.test(finalImportPath)) {
+          replacementMap = [targetRegExp, replacement];
+          return true;
+        }
+      } else if (finalImportPath.endsWith(target)) {
+        replacementMap = [target, replacement];
+        return true;
+      }
+    });
+  }
 
-//     const isTypeOnly = exportKind === 'type' || importKind === 'type';
+  if (replacementMap) {
+    const [target, replacement] = replacementMap;
+    finalImportPath = finalImportPath.replace(target, replacement);
+  }
 
-//     if (!source || isTypeOnly) {
-//       return;
-//     }
+  const isRelative =
+    finalImportPath.startsWith('./') ||
+    finalImportPath.startsWith('../') ||
+    finalImportPath == '.' ||
+    finalImportPath == '..';
 
-//     const module = source && source.value;
+  if (isRelative) {
+    const endsWithSlash = finalImportPath.endsWith('/');
 
-//     if (skipModule(module, { replace, extension, observedScriptExtensions })) {
-//       return;
-//     }
+    if (/(^\.?\.\/?$)|(\/\.?\.\/?$)/.test(finalImportPath)) {
+      finalImportPath += `${endsWithSlash ? '' : '/'}index${options.appendExtension}`;
+    } else {
+      const hasRecognizedExtension =
+        !endsWithSlash &&
+        options.recognizedExtensions.some((ext) => finalImportPath.endsWith(ext));
 
-//     const dirPath = resolve(dirname(filename), module);
+      if (options.appendExtension && !hasRecognizedExtension) {
+        if (endsWithSlash) {
+          finalImportPath = finalImportPath + `index${options.appendExtension}`;
+        } else {
+          finalImportPath = finalImportPath + options.appendExtension;
+        }
+      }
+    }
+  }
 
-//     const hasModuleExt =
-//       extname(module).length && isActiveExtension(module, observedScriptExtensions);
-//     const newModuleName = hasModuleExt
-//       ? module.slice(0, -extname(module).length)
-//       : module;
+  return finalImportPath;
+};
 
-//     const pathLiteral = () => {
-//       if (existsSync(dirPath) && lstatSync(dirPath).isDirectory()) {
-//         return `${module}${newModuleName.endsWith('/') ? '' : '/'}index.${extension}`;
-//       }
+const declarationHandler = (
+  path:
+    | NodePath<util.ImportDeclaration>
+    | NodePath<util.ExportAllDeclaration>
+    | NodePath<util.ExportNamedDeclaration>,
+  state: State
+) => {
+  const metadata = getLocalMetadata(state);
+  metadata.totalImports += 1;
 
-//       return `${newModuleName}.${extension}`;
-//     };
+  if (path.node.source && (state.opts.appendExtension || state.opts.replaceExtensions)) {
+    const importPath = path.node.source.value;
+    const specifierType = path.node.type.startsWith('Import') ? 'import' : 'export';
 
-//     path.replaceWith(declaration(...args(path), stringLiteral(pathLiteral())));
-//   };
+    const rewrittenPath = rewrite(importPath, {
+      ...state.opts,
+      recognizedExtensions: state.opts.recognizedExtensions || defaultRecognizedExtensions
+    });
 
-export default function (): PluginObj<State> {
+    if (importPath == rewrittenPath) {
+      debug(
+        `[${getFilenameFromState(
+          state
+        )}]: ${specifierType} evaluated but unchanged: "${importPath}"`
+      );
+    } else {
+      path.node.source = util.stringLiteral(rewrittenPath);
+      metadata.transformedImports.push(
+        `${specifierType} "${importPath}" => "${rewrittenPath}"`
+      );
+    }
+  }
+};
+
+let reporterTimeout: NodeJS.Timeout | undefined;
+
+export default function transformRewriteImports(): PluginObj<State> {
+  let rewriteOptsObjIdentifier: util.Identifier | undefined = undefined;
+  let rewriteFnIdentifier: util.Identifier | undefined = undefined;
+
   return {
     name: 'transform-rewrite-imports',
     visitor: {
-      // Program: {
-      //   enter(_, state) {
-      //     // ? Create it if it doesn't exist already, or do it later
-      //     getMetadata(state);
-      //   },
-      //   exit(_, state) {
-      //     if (state.opts.silent === false) {
-      //       const { total, transformed } = getMetadata(state);
-      //       const details =
-      //         `${transformed.length}/${total}` +
-      //         (state.opts.verbose && transformed.length
-      //           ? ` [${transformed.join(', ')}]`
-      //           : '');
-      //       if (state.opts.verbose || transformed.length)
-      //         // eslint-disable-next-line no-console
-      //         console.log(
-      //           `target: ${state.filename}\nimports transformed: ${details}\n---`
-      //         );
-      //     }
-      //   }
-      // },
-      // ImportDeclaration: makeDeclaration({
-      //   ...options,
-      //   declaration: importDeclaration,
-      //   args: ({ node: { specifiers } }) => [specifiers]
-      // }),
-      // ExportNamedDeclaration: makeDeclaration({
-      //   ...options,
-      //   declaration: exportNamedDeclaration,
-      //   args: ({ node: { declaration, specifiers } }) => [declaration, specifiers]
-      // }),
-      // ExportAllDeclaration: makeDeclaration({
-      //   ...options,
-      //   declaration: exportAllDeclaration,
-      //   args: () => []
-      // })
+      Program: {
+        enter() {
+          clearTimeout(reporterTimeout);
+        },
+        exit(_, state) {
+          setTimeout(() => {
+            if (!state.opts.silent || debug.enabled) {
+              let totalGlobalImports = 0;
+              let totalTransformedImports = 0;
+              let totalFiles = 0;
+              const globalMetadataEntries = Object.entries(globalMetadata);
+
+              globalMetadataEntries.forEach(([path, metadata]) => {
+                if (state.opts.verbose) {
+                  log(
+                    `rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
+                  );
+
+                  metadata.transformedImports.forEach((transformedImport) => {
+                    log(`  ${transformedImport}`);
+                  });
+                }
+
+                totalGlobalImports += metadata.totalImports;
+                totalTransformedImports += metadata.transformedImports.length;
+                totalFiles += 1;
+              });
+
+              if (!(state.opts.appendExtension || state.opts.replaceExtensions)) {
+                log(`(${pkgName} was loaded without configuration, making it a noop)`);
+              } else {
+                log(
+                  `${
+                    state.opts.verbose && globalMetadataEntries.length ? '---\n' : ''
+                  }rewrote ${totalTransformedImports} of ${totalGlobalImports} imports across ${totalFiles} files`
+                );
+              }
+            }
+          }, 100);
+        }
+      },
+      ImportDeclaration: declarationHandler,
+      ExportAllDeclaration: declarationHandler,
+      ExportNamedDeclaration: declarationHandler,
+      // ? dynamic imports and require statements
+      CallExpression(path, state) {
+        const isDynamicImport = path.node.callee?.type == 'Import';
+        const isRequire =
+          path.node.callee?.type == 'Identifier' && path.node.callee?.name == 'require';
+
+        const firstArgument = path.node.arguments?.[0] as
+          | (typeof path.node.arguments)[0]
+          | undefined;
+
+        const firstArgumentIsStringLiteral = firstArgument?.type == 'StringLiteral';
+
+        const { appendExtension, recognizedExtensions, replaceExtensions } = {
+          ...state.opts,
+          recognizedExtensions:
+            state.opts.recognizedExtensions || defaultRecognizedExtensions
+        };
+
+        if (isDynamicImport || isRequire) {
+          const metadata = getLocalMetadata(state);
+          metadata.totalImports += 1;
+
+          if (appendExtension || replaceExtensions) {
+            const specifierType = isDynamicImport ? 'dynamic import' : 'require';
+
+            if (!firstArgument) {
+              log.extend('<warn>')(
+                `[${getFilenameFromState(
+                  state
+                )}]: a ${specifierType} statement has no arguments!`
+              );
+            } else if (firstArgumentIsStringLiteral) {
+              const importPath = (firstArgument as util.StringLiteral).value;
+              const rewrittenPath = rewrite(importPath, {
+                appendExtension,
+                recognizedExtensions,
+                replaceExtensions
+              });
+
+              if (importPath == rewrittenPath) {
+                debug(
+                  `[${getFilenameFromState(
+                    state
+                  )}]: ${specifierType} evaluated but unchanged: "${importPath}"`
+                );
+              } else {
+                path.node.arguments[0] = util.stringLiteral(rewrittenPath);
+                metadata.transformedImports.push(
+                  `${specifierType} "${importPath}" => "${rewrittenPath}"`
+                );
+              }
+            } else {
+              if (!rewriteFnIdentifier) {
+                const globalScope = path.scope.getProgramParent();
+                const rewriteFnAst = template.expression.ast(rewrite.toString());
+                rewriteFnIdentifier = globalScope.generateUidIdentifier('_rewrite');
+
+                globalScope.push({
+                  id: rewriteFnIdentifier,
+                  init: rewriteFnAst,
+                  kind: 'const'
+                });
+              }
+
+              if (!rewriteOptsObjIdentifier) {
+                const rewriteOptsObjAst = template.expression.ast(
+                  JSON.stringify({
+                    appendExtension,
+                    recognizedExtensions,
+                    replaceExtensions
+                  })
+                );
+
+                const globalScope = path.scope.getProgramParent();
+                rewriteOptsObjIdentifier =
+                  globalScope.generateUidIdentifier('_rewrite_options');
+
+                globalScope.push({
+                  id: rewriteOptsObjIdentifier,
+                  init: rewriteOptsObjAst,
+                  kind: 'const'
+                });
+              }
+
+              path
+                .get('arguments')[0]
+                .replaceWith(
+                  util.callExpression(rewriteFnIdentifier, [
+                    firstArgument,
+                    rewriteOptsObjIdentifier
+                  ])
+                );
+
+              metadata.transformedImports.push(
+                `${specifierType} first argument wrapped with rewrite function`
+              );
+            }
+          }
+        }
+      }
     }
   };
 }
