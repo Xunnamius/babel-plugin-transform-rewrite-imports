@@ -49,9 +49,6 @@ module.exports = {
   parserOpts: { strictMode: true },
   plugins: [
     '@babel/plugin-proposal-export-default-from',
-    '@babel/plugin-proposal-function-bind',
-    '@babel/plugin-proposal-nullish-coalescing-operator',
-    '@babel/plugin-transform-typescript',
     [
       'module-resolver',
       {

@@ -10,8 +10,8 @@
     "declaration": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "incremental": true,
     "inlineSourceMap": true,
+    "incremental": true,
     "isolatedModules": true,
     "lib": [
       "ESNext",
@@ -21,7 +21,7 @@
       "DOM.Iterable"
     ],
     "module": "esnext",
-    "moduleResolution": "node",
+    "moduleResolution": "NodeNext",
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -41,7 +41,14 @@
     "strict": true,
     "target": "esnext"
   },
-  "exclude": ["node_modules"],
+  "exclude": [
+    "**/node_modules",
+    "**/coverage",
+    "**/dist",
+    "**/bin",
+    "**/build",
+    "**/test/fixtures"
+  ],
   "include": [
     "types/**/*",
     "lib/**/*",
