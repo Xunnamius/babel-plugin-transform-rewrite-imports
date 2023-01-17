@@ -1,0 +1,4 @@
+{
+  "appendExtension": ".cjs",
+  "fixtureOutputExt": ".js"
+}
