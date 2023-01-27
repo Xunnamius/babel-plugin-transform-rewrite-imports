@@ -13,15 +13,9 @@
     "inlineSourceMap": true,
     "incremental": true,
     "isolatedModules": true,
-    "lib": [
-      "ESNext",
-      "DOM",
-      "WebWorker.ImportScripts",
-      "ScriptHost",
-      "DOM.Iterable"
-    ],
+    "lib": ["ESNext"],
     "module": "esnext",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "node",
     "noEmit": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
@@ -47,7 +41,8 @@
     "**/dist",
     "**/bin",
     "**/build",
-    "**/test/fixtures"
+    "**/test/fixtures",
+    "**/test/integration/assets"
   ],
   "include": [
     "types/**/*",
