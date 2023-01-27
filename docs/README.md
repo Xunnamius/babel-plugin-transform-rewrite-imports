@@ -8,6 +8,10 @@ babel-plugin-transform-rewrite-imports
 
 - [Options](README.md#options)
 
+### Variables
+
+- [defaultRecognizedExtensions](README.md#defaultrecognizedextensions)
+
 ### Functions
 
 - [default](README.md#default)
@@ -30,7 +34,17 @@ babel-plugin-transform-rewrite-imports
 
 #### Defined in
 
-[index.ts:11](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/eec7860/src/index.ts#L11)
+[index.ts:10](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/9fb052d/src/index.ts#L10)
+
+## Variables
+
+### defaultRecognizedExtensions
+
+• `Const` **defaultRecognizedExtensions**: readonly [``".js"``, ``".jsx"``, ``".mjs"``, ``".cjs"``, ``".json"``]
+
+#### Defined in
+
+[index.ts:37](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/9fb052d/src/index.ts#L37)
 
 ## Functions
 
@@ -44,4 +58,4 @@ babel-plugin-transform-rewrite-imports
 
 #### Defined in
 
-[index.ts:159](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/eec7860/src/index.ts#L159)
+[index.ts:47](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/9fb052d/src/index.ts#L47)
