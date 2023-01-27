@@ -4,6 +4,7 @@
 [![Last commit timestamp][badge-last-commit]][link-repo]
 [![Codecov][badge-codecov]][link-codecov]
 [![Source license][badge-license]][link-license]
+[![Monthly Downloads][badge-downloads]][link-npm]
 [![NPM version][badge-npm]][link-npm]
 [![Uses Semantic Release!][badge-semantic-release]][link-semantic-release]
 
@@ -450,19 +451,21 @@ any kind welcome!
 
 [badge-blm]: https://xunn.at/badge-blm 'Join the movement!'
 [badge-codecov]:
-  https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports/branch/main/graph/badge.svg?token=HWRIOBAAPW
+  https://img.shields.io/codecov/c/github/Xunnamius/babel-plugin-transform-rewrite-imports?style=flat-square&token=HWRIOBAAPW
   'Is this package well-tested?'
+[badge-downloads]:
+  https://img.shields.io/npm/dm/babel-plugin-transform-rewrite-imports?style=flat-square
 [badge-last-commit]:
-  https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports
+  https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports?style=flat-square
   'Latest commit timestamp'
 [badge-license]:
-  https://img.shields.io/npm/l/babel-plugin-transform-rewrite-imports
+  https://img.shields.io/npm/l/babel-plugin-transform-rewrite-imports?style=flat-square
   "This package's source license"
 [badge-npm]:
   https://api.ergodark.com/badges/npm-pkg-version/babel-plugin-transform-rewrite-imports
   'Install this package using npm or yarn!'
 [badge-semantic-release]:
-  https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
+  https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=flat-square
   'This repo practices continuous integration and deployment!'
 [choose-new-issue]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
