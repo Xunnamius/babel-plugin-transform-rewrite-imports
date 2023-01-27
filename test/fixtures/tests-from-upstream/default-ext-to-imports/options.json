@@ -1,0 +1,17 @@
+{
+  "title": "should add the default extension to import statements",
+  "pluginOptions": {
+    "appendExtension": ".js",
+    "recognizedExtensions": [
+      ".js",
+      ".ts",
+      ".jsx",
+      ".tsx",
+      ".mjs",
+      ".cjs"
+    ],
+    "replaceExtensions": {
+      ".ts": ".js"
+    }
+  }
+}

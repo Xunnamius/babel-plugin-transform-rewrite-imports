@@ -1,0 +1,16 @@
+{
+  "title": "should skip type-only exports",
+  "pluginOptions": {
+    "appendExtension": ".jsx",
+    "recognizedExtensions": [
+      ".js",
+      ".jsx",
+      ".mjs",
+      ".cjs",
+      ".json"
+    ],
+    "replaceExtensions": {
+      ".ts": ".jsx"
+    }
+  }
+}

@@ -1,4 +1,5 @@
 {
-  "appendExtension": ".cjs",
-  "fixtureOutputExt": ".js"
+  "pluginOptions": {
+    "appendExtension": ".cjs"
+  }
 }

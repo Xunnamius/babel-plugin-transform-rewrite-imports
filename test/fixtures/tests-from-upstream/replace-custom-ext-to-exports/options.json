@@ -1,0 +1,17 @@
+{
+  "title": "should add the replace custom extension to export statements",
+  "pluginOptions": {
+    "appendExtension": ".jsx",
+    "recognizedExtensions": [
+      ".js",
+      ".ts",
+      ".jsx",
+      ".tsx",
+      ".mjs",
+      ".cjs"
+    ],
+    "replaceExtensions": {
+      ".ts": ".jsx"
+    }
+  }
+}

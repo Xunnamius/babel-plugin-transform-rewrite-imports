@@ -1,19 +1,16 @@
 const _rewrite = (importPath, options) => {
     if (typeof importPath != 'string') {
-      throw new Error(
+      throw new TypeError(
         `rewrite error: expected import specifier of type string, not ${typeof importPath}`
       );
     }
-
     let finalImportPath = importPath;
     let replacementMap;
     replacementMap = undefined;
-
     if (options.replaceExtensions) {
       Object.entries(options.replaceExtensions).some(([target, replacement]) => {
         if (target.startsWith('^') || target.endsWith('$')) {
           const targetRegExp = new RegExp(target);
-
           if (targetRegExp.test(finalImportPath)) {
             replacementMap = [targetRegExp, replacement];
             return true;
@@ -24,69 +21,63 @@ const _rewrite = (importPath, options) => {
         }
       });
     }
-
     if (replacementMap) {
       const [target, replacement] = replacementMap;
       finalImportPath = finalImportPath.replace(target, replacement);
     }
-
     const isRelative =
       finalImportPath.startsWith('./') ||
       finalImportPath.startsWith('../') ||
       finalImportPath == '.' ||
       finalImportPath == '..';
-
-    if (isRelative) {
+    if (options.appendExtension && isRelative) {
       const endsWithSlash = finalImportPath.endsWith('/');
-
       if (/(^\.?\.\/?$)|(\/\.?\.\/?$)/.test(finalImportPath)) {
         finalImportPath += `${endsWithSlash ? '' : '/'}index${options.appendExtension}`;
       } else {
         const hasRecognizedExtension =
           !endsWithSlash &&
-          options.recognizedExtensions.some((ext) => finalImportPath.endsWith(ext));
-
-        if (options.appendExtension && !hasRecognizedExtension) {
-          if (endsWithSlash) {
-            finalImportPath = finalImportPath + `index${options.appendExtension}`;
-          } else {
-            finalImportPath = finalImportPath + options.appendExtension;
-          }
+          options.recognizedExtensions.some((extension) => {
+            return finalImportPath.endsWith(extension);
+          });
+        if (!hasRecognizedExtension) {
+          finalImportPath = endsWithSlash
+            ? finalImportPath + `index${options.appendExtension}`
+            : finalImportPath + options.appendExtension;
         }
       }
     }
-
     return finalImportPath;
   },
   _rewrite_options = {
-    appendExtension: '.mjs',
-    recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+    recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json'],
     replaceExtensions: {
-      '.ts': '.mjs',
-      '^package$': '/absolute/path/to/project/package.json',
-      '(.+?)\\.less$': '$1.css'
+      '\\.m?(t|j)s$': '.xxx',
+      '^node:(.).+': '@internal/$1'
     }
   };
-
-import { name as pkgName } from '/absolute/path/to/project/package.json';
-import { primary } from './index.mjs';
-import { secondary } from '../index.mjs';
-import { tertiary } from '../../index.mjs';
-import dirImport from './some-dir/index.mjs';
+import { name as pkgName } from 'package';
+import fs from '@internal/f';
+import { primary } from '.';
+import { secondary } from '..';
+import { tertiary } from '../..';
+import dirImport from './some-dir/';
 import jsConfig from './jsconfig.json';
-import projectConfig from './project.config.cjs';
-import { add, double } from './src/numbers.mjs';
-import { curry } from './src/typed/curry.mjs';
-import styles from './src/less/styles.css'; // Note that, unless otherwise configured, babel deletes type-only imports
+import projectConfig1 from './project.config.cjs';
+import projectConfig2 from './project.config.xxx';
+import { add, double } from './src/numbers';
+import { curry } from './src/typed/curry.xxx';
+import styles from './src/less/styles.less';
 
-export { triple, quadruple } from './lib/num-utils.mjs'; // Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, unless otherwise configured, babel deletes type-only imports
 
-const thing = await import('./thing.mjs');
+export { triple, quadruple } from './lib/num-utils';
 
-const anotherThing = require('./another-thing.mjs');
+// Note that, unless otherwise configured, babel deletes type-only imports
 
+const thing = await import('./thing');
+const anotherThing = require('./another-thing');
 const thing2 = await import(
   _rewrite(someFn(`./${someVariable}`) + '.json', _rewrite_options)
 );
-
 const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));

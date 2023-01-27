@@ -1,4 +1,5 @@
 import { name as pkgName } from 'package';
+import fs from 'node:fs';
 import { primary } from '.';
 import { secondary } from '..';
 import { tertiary } from '../..';
@@ -13,6 +14,7 @@ import styles from './src/less/styles.less';
 import type * as AllTypes from './lib/something.mjs';
 
 export { triple, quadruple } from './lib/num-utils';
+
 // Note that, unless otherwise configured, babel deletes type-only imports
 export type { NamedType } from './lib/something';
 
