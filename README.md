@@ -1,20 +1,13 @@
-<!-- prettier-ignore-start -->
-
 <!-- badges-start -->
 
 [![Black Lives Matter!][badge-blm]][link-blm]
-[![Maintenance status][badge-maintenance]][link-repo]
 [![Last commit timestamp][badge-last-commit]][link-repo]
-[![Open issues][badge-issues]][link-issues]
-[![Pull requests][badge-pulls]][link-pulls]
 [![Codecov][badge-codecov]][link-codecov]
 [![Source license][badge-license]][link-license]
 [![NPM version][badge-npm]][link-npm]
 [![Uses Semantic Release!][badge-semantic-release]][link-semantic-release]
 
 <!-- badges-end -->
-
-<!-- prettier-ignore-end -->
 
 # babel-plugin-transform-rewrite-imports
 
@@ -36,9 +29,27 @@ both `require` and dynamic `import()` statements, memoize rewrite function AST
 and options as globals for substantial comparative output size reduction, and
 append extensions to import specifiers that do not already have one.
 
+---
+
+<!-- remark-ignore-start -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Install](#install)
+- [Usage](#usage)
+- [Examples](#examples)
+- [Appendix](#appendix)
+  - [Published Package Details](#published-package-details)
+  - [License](#license)
+- [Contributing and Support](#contributing-and-support)
+  - [Contributors](#contributors)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- remark-ignore-end -->
+
 ## Install
 
-```Shell
+```shell
 npm install --save-dev babel-plugin-transform-rewrite-imports
 ```
 
@@ -59,7 +70,7 @@ module.exports = {
 
 Finally, run Babel through your toolchain (Webpack, Jest, etc) or manually:
 
-```Shell
+```shell
 npx babel src --out-dir dist
 ```
 
@@ -124,8 +135,34 @@ other imports, including those with a `.` in the file name (e.g.
 `recognizedExtensions` is set to `['.js', '.jsx', '.mjs', '.cjs', '.json']` by
 default.
 
+If the value of `appendExtension` is not included in `recognizedExtensions`,
+then imports that already end in `appendExtension` will have `appendExtension`
+appended to them (e.g. `index.ts` is rewritten as `index.ts.ts` when
+`appendExtension: '.ts'` and `recognizedExtensions` is its default value). If
+this behavior is undesired, ensure `appendExtension` is included in
+`recognizedExtensions`.
+
 > Note that specifying a custom value for `recognizedExtensions` overwrites the
-> default value entirely.
+> default value entirely. To extend rather than overwrite, you can import the
+> default value from the package itself:
+>
+> ```typescript
+> const {
+>   defaultRecognizedExtensions
+> } = require('babel-plugin-transform-rewrite-imports');
+>
+> module.exports = {
+>   plugins: [
+>     [
+>       'babel-plugin-transform-rewrite-imports',
+>       {
+>         appendExtension: '.mjs',
+>         recognizedExtensions: [...defaultRecognizedExtensions, '.ts']
+>       }
+>     ]
+>   ]
+> };
+> ```
 
 You can also replace one or more existing extensions in specifiers using a
 replacement map:
@@ -179,6 +216,10 @@ This allows you to partially or entirely rewrite a specifier rather than just
 its extension:
 
 ```typescript
+const {
+  defaultRecognizedExtensions
+} = require('babel-plugin-transform-rewrite-imports');
+
 module.exports = {
   plugins: [
     [
@@ -186,7 +227,7 @@ module.exports = {
       {
         appendExtension: '.mjs',
         // Add .css to recognizedExtensions so .mjs isn't automatically appended
-        recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+        recognizedExtensions: [...defaultRecognizedExtensions, '.css'],
         replaceExtensions: {
           '.node.js': '.cjs',
           '.js': '.mjs',
@@ -219,13 +260,17 @@ a recognized extension, which would then be ignored instead of having
 With the following snippet integrated into your babel configuration:
 
 ```typescript
+const {
+  defaultRecognizedExtensions
+} = require('babel-plugin-transform-rewrite-imports');
+
 module.exports = {
   plugins: [
     [
       'babel-plugin-transform-rewrite-imports',
       {
         appendExtension: '.mjs',
-        recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.css'],
+        recognizedExtensions: [...defaultRecognizedExtensions, '.css'],
         replaceExtensions: {
           '.ts': '.mjs',
           '^package$': `${__dirname}/package.json`,
@@ -252,11 +297,14 @@ import { add, double } from './src/numbers';
 import { curry } from './src/typed/curry.ts';
 import styles from './src/less/styles.less';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, unless otherwise configured, babel deletes type-only imports.
+// Since they're only relevant for TypeScript, they are ignored by this plugin.
 import type * as AllTypes from './lib/something.mjs';
 
 export { triple, quadruple } from './lib/num-utils';
-// Note that, unless otherwise configured, babel deletes type-only imports
+
+// Note that, unless otherwise configured, babel deletes type-only exports.
+// Since they're only relevant for TypeScript, they are ignored by this plugin.
 export type { NamedType } from './lib/something';
 
 const thing = await import('./thing');
@@ -299,8 +347,9 @@ export { triple, quadruple } from './lib/num-utils.mjs';
 const thing = await import('./thing.mjs');
 const anotherThing = require('./another-thing.mjs');
 
-// Requires and dynamic imports with a non-string-literal first argument are
-// transformed into function calls that dynamically return the rewritten string
+// Require calls and dynamic imports with a non-string-literal first argument
+// are transformed into function calls that dynamically return the rewritten
+// string:
 
 const thing2 = await import(
   _rewrite(someFn(`./${someVariable}`) + '.json', _rewrite_options)
@@ -310,9 +359,11 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
-## Documentation
+## Appendix
 
-> Further documentation can be found under [`docs/`][docs].
+Further documentation can be found under [`docs/`][docs].
+
+### Published Package Details
 
 This is a [CJS2 package][cjs-mojito] with statically-analyzable exports built by
 Babel for Node14 and above. That means both CJS2 (via `require(...)`) and ESM
@@ -341,6 +392,10 @@ module (`.mjs`) files. Finally, [`package.json`][package-json] also includes the
 [`sideEffects`][side-effects-key] key, which is `false` for optimal [tree
 shaking][tree-shaking].
 
+### License
+
+See [LICENSE][5].
+
 ## Contributing and Support
 
 **[New issues][choose-new-issue] and [pull requests][pr-compare] are always
@@ -350,66 +405,99 @@ project][link-repo] to let me know you found it useful! ✊🏿 Thank you!
 See [CONTRIBUTING.md][contributing] and [SUPPORT.md][support] for more
 information.
 
+### Contributors
+
+<!-- remark-ignore-start -->
+<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
+
+[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
+
+<!-- ALL-CONTRIBUTORS-BADGE:END -->
+<!-- remark-ignore-end -->
+
+Thanks goes to these wonderful people ([emoji key][6]):
+
+<!-- remark-ignore-start -->
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://xunn.io/"><img src="https://avatars.githubusercontent.com/u/656017?v=4?s=100" width="100px;" alt="Bernard"/><br /><sub><b>Bernard</b></sub></a><br /><a href="#infra-Xunnamius" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a> <a href="https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/commits?author=Xunnamius" title="Code">💻</a> <a href="https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/commits?author=Xunnamius" title="Documentation">📖</a> <a href="#maintenance-Xunnamius" title="Maintenance">🚧</a> <a href="https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/commits?author=Xunnamius" title="Tests">⚠️</a> <a href="https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/pulls?q=is%3Apr+reviewed-by%3AXunnamius" title="Reviewed Pull Requests">👀</a></td>
+    </tr>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td align="center" size="13px" colspan="7">
+        <img src="https://raw.githubusercontent.com/all-contributors/all-contributors-cli/1b8533af435da9854653492b1327a23a4dbd0a10/assets/logo-small.svg">
+          <a href="https://all-contributors.js.org/docs/en/bot/usage">Add your contributions</a>
+        </img>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- remark-ignore-end -->
+
+This project follows the [all-contributors][7] specification. Contributions of
+any kind welcome!
+
 [badge-blm]: https://xunn.at/badge-blm 'Join the movement!'
-[link-blm]: https://xunn.at/donate-blm
-[badge-maintenance]:
-  https://img.shields.io/maintenance/active/2023
-  'Is this package maintained?'
-[link-repo]: https://github.com/xunnamius/babel-plugin-transform-rewrite-imports
-[badge-last-commit]:
-  https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports
-  'Latest commit timestamp'
-[badge-issues]:
-  https://img.shields.io/github/issues/Xunnamius/babel-plugin-transform-rewrite-imports
-  'Open issues'
-[link-issues]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues?q=
-[badge-pulls]:
-  https://img.shields.io/github/issues-pr/xunnamius/babel-plugin-transform-rewrite-imports
-  'Open pull requests'
-[link-pulls]:
-  https://github.com/xunnamius/babel-plugin-transform-rewrite-imports/pulls
 [badge-codecov]:
   https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports/branch/main/graph/badge.svg?token=HWRIOBAAPW
   'Is this package well-tested?'
-[link-codecov]:
-  https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports
+[badge-last-commit]:
+  https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports
+  'Latest commit timestamp'
 [badge-license]:
   https://img.shields.io/npm/l/babel-plugin-transform-rewrite-imports
   "This package's source license"
-[link-license]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/LICENSE
 [badge-npm]:
   https://api.ergodark.com/badges/npm-pkg-version/babel-plugin-transform-rewrite-imports
   'Install this package using npm or yarn!'
-[link-npm]: https://www.npmjs.com/package/babel-plugin-transform-rewrite-imports
 [badge-semantic-release]:
   https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg
   'This repo practices continuous integration and deployment!'
-[link-semantic-release]: https://github.com/semantic-release/semantic-release
-[package-json]: package.json
-[docs]: docs
 [choose-new-issue]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
-[pr-compare]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/compare
-[contributing]: CONTRIBUTING.md
-[support]: .github/SUPPORT.md
 [cjs-mojito]:
   https://dev.to/jakobjingleheimer/configuring-commonjs-es-modules-for-nodejs-12ed#publish-only-a-cjs-distribution-with-property-exports
+[contributing]: CONTRIBUTING.md
+[docs]: docs
+[dual-package-hazard]: https://nodejs.org/api/packages.html#dual-package-hazard
+[exports-conditions]:
+  https://webpack.js.org/guides/package-exports#reference-syntax
+[exports-module-key]:
+  https://webpack.js.org/guides/package-exports#providing-commonjs-and-esm-version-stateless
+[exports-types-key]:
+  https://devblogs.microsoft.com/typescript/announcing-typescript-4-5-beta#packagejson-exports-imports-and-self-referencing
+[link-blm]: https://xunn.at/donate-blm
+[link-codecov]:
+  https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports
+[link-license]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/LICENSE
+[link-npm]: https://www.npmjs.com/package/babel-plugin-transform-rewrite-imports
+[link-repo]: https://github.com/xunnamius/babel-plugin-transform-rewrite-imports
+[link-semantic-release]: https://github.com/semantic-release/semantic-release
 [local-pkg]:
   https://github.com/nodejs/node/blob/8d8e06a345043bec787e904edc9a2f5c5e9c275f/doc/api/packages.md#type
-[exports-module-key]:
-  https://webpack.js.org/guides/package-exports/#providing-commonjs-and-esm-version-stateless
-[exports-types-key]:
-  https://devblogs.microsoft.com/typescript/announcing-typescript-4-5-beta/#packagejson-exports-imports-and-self-referencing
-[exports-conditions]:
-  https://webpack.js.org/guides/package-exports/#reference-syntax
+[package-json]: package.json
+[pr-compare]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/compare
 [side-effects-key]:
-  https://webpack.js.org/guides/tree-shaking/#mark-the-file-as-side-effect-free
-[dual-package-hazard]: https://nodejs.org/api/packages.html#dual-package-hazard
+  https://webpack.js.org/guides/tree-shaking#mark-the-file-as-side-effect-free
+[support]: .github/SUPPORT.md
 [tree-shaking]: https://webpack.js.org/guides/tree-shaking
 [1]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/3
 [2]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/10
 [3]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
 [4]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
+[5]: ./LICENSE
+[6]: https://allcontributors.org/docs/en/emoji-key
+[7]: https://github.com/all-contributors/all-contributors

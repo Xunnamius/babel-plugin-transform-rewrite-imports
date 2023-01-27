@@ -5,15 +5,15 @@ Hi there! First off, we're thrilled 🤩 you want contribute to this project!
 First time contributor to a GitHub project? If you could use some help getting
 started, [take a look at this quick and easy guide][how-to-contribute]. 💜
 
-## Briefly: Submitting a Pull Request (PR)
+## Briefly: Submitting a Pull Request (Pr)
 
 > See also: [CODE_OF_CONDUCT.md][code-of-conduct]
 
 This repository uses a [fully automated][github-actions] [continuous
-linting][husky-cl] (CL), [integration testing][gha-ci] (CI), and
-[deployment][gha-ci] (CD) [projector][projector]-based pipeline for integrating
-PRs and publishing releases. The neat thing about a fully automated pipeline is
-that anyone anywhere can make a contribution quickly and with minimal tedium.
+linting][husky-cl] (CL), integration testing (CI), and deployment (CD)
+[projector][projector]-based pipeline for integrating PRs and publishing
+releases. The neat thing about a fully automated pipeline is that anyone
+anywhere can make a contribution quickly and with minimal tedium.
 
 This repository makes extensive use of [debug][pkg-debug]. Should you wish to
 view all possible debugging output, [export
@@ -21,27 +21,27 @@ view all possible debugging output, [export
 
 The ideal contributor flow is as follows:
 
-1.  [Fork][fork] this repository and [clone it locally][how-to-clone].
-    - If there is a custom Docker image available for this project and you're
-      comfortable with Docker, consider using it instead.
-2.  Configure and install dependencies with `npm ci`.
-    - You use `npm ci` here instead of `npm install` to [prevent unnecessary
-      updates to `package.json` and `package-lock.json`][npm-ci], but if it
-      makes more sense to use `npm install` feel free to use that instead.
-    - If `.env.example` exists, consider copying it to `.env` and configuring
-      sensible defaults.
-3.  Before making any changes, ensure all unit tests are passing with
-    `npm run test`.
-4.  _(optional but recommended)_ Create a new branch, usually off `main`.
-    - Example: `git checkout -b contrib-feature-1`
-5.  Make your changes and commit. Your work will be checked as you commit; any
-    problems will abort the commit/push attempt.
-    - Ensure any new tests still pass even when the `DEBUG` environment variable
-      is defined.
-6.  Push your commits to your fork and, when you're ready, [_fearlessly_ submit
-    your PR][pr-compare]! Your changes will be tested in our CI pipeline.
-7.  Pat yourself on the back! Your hard work is well on its way to being
-    reviewed and, if everything looks good, merged and released 🚀
+1. [Fork][fork] this repository and [clone it locally][how-to-clone].
+   - If there is a custom Docker image available for this project and you're
+     comfortable with Docker, consider using it instead.
+2. Configure and install dependencies with `npm ci`.
+   - You use `npm ci` here instead of `npm install` to [prevent unnecessary
+     updates to `package.json` and `package-lock.json`][npm-ci], but if it makes
+     more sense to use `npm install` feel free to use that instead.
+   - If `.env.example` exists, consider copying it to `.env` and configuring
+     sensible defaults.
+3. Before making any changes, ensure all unit tests are passing with
+   `npm run test`.
+4. _(optional but recommended)_ Create a new branch, usually off `main`.
+   - Example: `git checkout -b contrib-feature-1`.
+5. Make your changes and commit. Your work will be checked as you commit; any
+   problems will abort the commit/push attempt.
+   - Ensure any new tests still pass even when the `DEBUG` environment variable
+     is defined.
+6. Push your commits to your fork and, when you're ready, [_fearlessly_ submit
+   your PR][pr-compare]! Your changes will be tested in our CI pipeline.
+7. Pat yourself on the back! Your hard work is well on its way to being reviewed
+   and, if everything looks good, merged and released 🚀
 
 Additionally, there are a few things you can do to greatly increase the
 likelihood your PR passes review:
@@ -75,27 +75,22 @@ likelihood your PR passes review:
 
 At this point, you're ready to create your PR and ✨ contribute ✨!
 
-[how-to-contribute]: https://www.dataschool.io/how-to-contribute-on-github
+[atomic-commits]: https://www.codewithjason.com/atomic-commits-testing
+[choose-new-issue]: https://github.com/Xunnamius/unified-utils/issues/new/choose
 [code-of-conduct]: /.github/CODE_OF_CONDUCT.md
-[github-actions]: https://github.com/features/actions
-[husky-cl]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/.husky
-[gha-ci]: .github/workflows/build-test.yml
-[projector]: https://github.com/Xunnamius/projector#readme
-[pkg-debug]: https://www.npmjs.com/package/debug
-[pkg-debug-wildcards]: https://www.npmjs.com/package/debug#wildcards
-[fork]: https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/fork
-[how-to-clone]:
-  https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/cloning-a-repository
-[npm-ci]: https://docs.npmjs.com/cli/v6/commands/npm-ci
-[pr-compare]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/compare
-[choose-new-issue]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
-[open-issues]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues?q=
-[atomic-commits]: https://www.codewithjason.com/atomic-commits-testing/
-[codecov]: https://about.codecov.io/
-[conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0/#summary
+[codecov]: https://about.codecov.io
+[conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0#summary
 [cosmetic-commits]:
   https://github.com/rails/rails/pull/13771#issuecomment-32746700
+[fork]: https://github.com/Xunnamius/unified-utils/fork
+[github-actions]: https://github.com/features/actions
+[how-to-clone]:
+  https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/cloning-a-repository
+[how-to-contribute]: https://www.dataschool.io/how-to-contribute-on-github
+[husky-cl]: https://github.com/Xunnamius/unified-utils/tree/main/.husky
+[npm-ci]: https://docs.npmjs.com/cli/v6/commands/npm-ci
+[open-issues]: https://github.com/Xunnamius/unified-utils/issues?q=
+[pkg-debug]: https://www.npmjs.com/package/debug
+[pkg-debug-wildcards]: https://www.npmjs.com/package/debug#wildcards
+[pr-compare]: https://github.com/Xunnamius/unified-utils/compare
+[projector]: https://github.com/Xunnamius/unified-utils#readme
