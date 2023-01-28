@@ -50,6 +50,16 @@ module.exports = {
           }
         ],
         ['@babel/preset-typescript', { allowDeclareFields: true }]
+      ],
+      plugins: [
+        [
+          'babel-plugin-transform-rewrite-imports',
+          {
+            replaceExtensions: {
+              '^../package.json$': '../../package.json'
+            }
+          }
+        ]
       ]
     }
   }
