@@ -1,6 +1,6 @@
 module.exports = {
   /**
-   * @type {import('../../..').Options}
+   * @type {import('../../../src/index').Options}
    */
   pluginOptions: {
     appendExtension: '.mjs',

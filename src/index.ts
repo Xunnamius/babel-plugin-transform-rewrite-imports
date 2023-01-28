@@ -17,15 +17,7 @@ export type Options = {
 
 type State = PluginPass & { opts: Options };
 
-const log = debugFactory(debugNamespace);
-const debug = debugFactory(`${debugNamespace}:debug`);
-
-// eslint-disable-next-line no-console
-log.log = console.info.bind(console);
-
-if (!process.env.DEBUG && process.env.NODE_ENV != 'test') {
-  debugFactory.enable(`${debugNamespace},${debugNamespace}:*,-${debugNamespace}:debug`);
-}
+const debug = debugFactory(debugNamespace);
 
 const globalMetadata: {
   [path: string]: {
@@ -59,40 +51,50 @@ export default function transformRewriteImports(): PluginObj<State> {
           clearTimeout(reporterTimeout);
         },
         exit(_, state) {
-          reporterTimeout = setTimeout(() => {
-            if (!state.opts.silent || debug.enabled) {
-              let totalGlobalImports = 0;
-              let totalTransformedImports = 0;
-              let totalFiles = 0;
-              const globalMetadataEntries = Object.entries(globalMetadata);
+          if (process.env.NODE_ENV != 'test') {
+            reporterTimeout = setTimeout(() => {
+              if (!state.opts.silent) {
+                let totalGlobalImports = 0;
+                let totalTransformedImports = 0;
+                let totalFiles = 0;
+                const globalMetadataEntries = Object.entries(globalMetadata);
 
-              globalMetadataEntries.forEach(([path, metadata]) => {
-                if (state.opts.verbose) {
-                  log(
-                    `rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
+                globalMetadataEntries.forEach(([path, metadata]) => {
+                  if (state.opts.verbose) {
+                    // eslint-disable-next-line no-console
+                    console.log(
+                      `Rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
+                    );
+
+                    metadata.transformedImports.forEach((transformedImport) => {
+                      // eslint-disable-next-line no-console
+                      console.log(`  ${transformedImport}`);
+                    });
+                  }
+
+                  totalGlobalImports += metadata.totalImports;
+                  totalTransformedImports += metadata.transformedImports.length;
+                  totalFiles += 1;
+                });
+
+                if (!(state.opts.appendExtension || state.opts.replaceExtensions)) {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    `(${pkgName} was loaded without configuration, making it a noop)`
                   );
-
-                  metadata.transformedImports.forEach((transformedImport) => {
-                    log(`  ${transformedImport}`);
-                  });
+                } else {
+                  // eslint-disable-next-line no-console
+                  console.log(
+                    `${
+                      state.opts.verbose && globalMetadataEntries.length ? '---\n' : ''
+                    }Rewrote ${totalTransformedImports} of ${totalGlobalImports} imports ${
+                      totalFiles == 1 ? 'in 1 file' : `across ${totalFiles} files`
+                    }`
+                  );
                 }
-
-                totalGlobalImports += metadata.totalImports;
-                totalTransformedImports += metadata.transformedImports.length;
-                totalFiles += 1;
-              });
-
-              if (!(state.opts.appendExtension || state.opts.replaceExtensions)) {
-                log(`(${pkgName} was loaded without configuration, making it a noop)`);
-              } else {
-                log(
-                  `${
-                    state.opts.verbose && globalMetadataEntries.length ? '---\n' : ''
-                  }rewrote ${totalTransformedImports} of ${totalGlobalImports} imports across ${totalFiles} files`
-                );
               }
-            }
-          }, 100);
+            }, 100);
+          }
         }
       },
       ImportDeclaration: declarationHandler,
@@ -124,10 +126,11 @@ export default function transformRewriteImports(): PluginObj<State> {
             const specifierType = isDynamicImport ? 'dynamic import' : 'require';
 
             if (!firstArgument) {
-              log.extend('<warn>')(
+              // eslint-disable-next-line no-console
+              console.warn(
                 `[${getFilenameFromState(
                   state
-                )}]: a ${specifierType} statement has no arguments!`
+                )}]: warning: a ${specifierType} statement has no arguments!`
               );
             } else if (firstArgumentIsStringLiteral) {
               const importPath = (firstArgument as util.StringLiteral).value;
@@ -145,9 +148,9 @@ export default function transformRewriteImports(): PluginObj<State> {
                 );
               } else {
                 path.node.arguments[0] = util.stringLiteral(rewrittenPath);
-                metadata.transformedImports.push(
-                  `${specifierType} "${importPath}" => "${rewrittenPath}"`
-                );
+                const debugString = `[CallExpression]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
+                metadata.transformedImports.push(debugString);
+                debug(debugString);
               }
             } else {
               const globalScope = path.scope.getProgramParent();
@@ -191,9 +194,9 @@ export default function transformRewriteImports(): PluginObj<State> {
                   ])
                 );
 
-              metadata.transformedImports.push(
-                `${specifierType} first argument wrapped with rewrite function`
-              );
+              const debugString = `[CallExpression]: ${specifierType} first argument wrapped with rewrite function`;
+              metadata.transformedImports.push(debugString);
+              debug(debugString);
             }
           }
         }
@@ -230,9 +233,9 @@ function declarationHandler(
       );
     } else {
       path.node.source = util.stringLiteral(rewrittenPath);
-      metadata.transformedImports.push(
-        `${specifierType} "${importPath}" => "${rewrittenPath}"`
-      );
+      const debugString = `[declarationHandler]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
+      metadata.transformedImports.push(debugString);
+      debug(debugString);
     }
   }
 }
