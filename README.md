@@ -451,10 +451,11 @@ any kind welcome!
 
 [badge-blm]: https://xunn.at/badge-blm 'Join the movement!'
 [badge-codecov]:
-  https://img.shields.io/codecov/c/github/Xunnamius/babel-plugin-transform-rewrite-imports?style=flat-square&token=HWRIOBAAPW
+  https://img.shields.io/codecov/c/github/Xunnamius/babel-plugin-transform-rewrite-imports/main?style=flat-square&token=HWRIOBAAPW
   'Is this package well-tested?'
 [badge-downloads]:
   https://img.shields.io/npm/dm/babel-plugin-transform-rewrite-imports?style=flat-square
+  'Number of times this package has been downloaded per month'
 [badge-last-commit]:
   https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports?style=flat-square
   'Latest commit timestamp'
