@@ -34,7 +34,7 @@ babel-plugin-transform-rewrite-imports
 
 #### Defined in
 
-[index.ts:10](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/70e4053/src/index.ts#L10)
+[index.ts:10](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/a50db17/src/index.ts#L10)
 
 ## Variables
 
@@ -44,7 +44,7 @@ babel-plugin-transform-rewrite-imports
 
 #### Defined in
 
-[index.ts:29](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/70e4053/src/index.ts#L29)
+[index.ts:29](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/a50db17/src/index.ts#L29)
 
 ## Functions
 
@@ -58,4 +58,4 @@ babel-plugin-transform-rewrite-imports
 
 #### Defined in
 
-[index.ts:39](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/70e4053/src/index.ts#L39)
+[index.ts:39](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/a50db17/src/index.ts#L39)

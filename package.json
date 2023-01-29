@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-transform-rewrite-imports",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Add an extension to import specifiers that do not already have one, replace the extensions of those that do, or even rewrite specifiers entirely.",
   "keywords": [
     "babel",
