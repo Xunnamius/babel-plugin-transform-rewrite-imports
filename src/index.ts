@@ -63,12 +63,12 @@ export default function transformRewriteImports(): PluginObj<State> {
                   if (state.opts.verbose) {
                     // eslint-disable-next-line no-console
                     console.log(
-                      `Rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
+                      `└── Rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
                     );
 
                     metadata.transformedImports.forEach((transformedImport) => {
                       // eslint-disable-next-line no-console
-                      console.log(`  ${transformedImport}`);
+                      console.log(`  » ${transformedImport}`);
                     });
                   }
 
@@ -86,7 +86,9 @@ export default function transformRewriteImports(): PluginObj<State> {
                   // eslint-disable-next-line no-console
                   console.log(
                     `${
-                      state.opts.verbose && globalMetadataEntries.length ? '---\n' : ''
+                      state.opts.verbose && globalMetadataEntries.length
+                        ? '  ---\n  '
+                        : '└── '
                     }Rewrote ${totalTransformedImports} of ${totalGlobalImports} imports ${
                       totalFiles == 1 ? 'in 1 file' : `across ${totalFiles} files`
                     }`
