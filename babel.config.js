@@ -10,6 +10,9 @@ const debug = require('debug')(`${pkgName}:babel-config`);
 
 debug('NODE_ENV: %O', process.env.NODE_ENV);
 
+/**
+ * @type {import('@babel/core').TransformOptions}
+ */
 module.exports = {
   comments: false,
   parserOpts: { strictMode: true },
