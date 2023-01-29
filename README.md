@@ -16,7 +16,8 @@ A babel plugin that reliably adds extensions to import (and export) specifiers
 that do not already have one, selectively replaces extensions of specifiers that
 do, and can even rewrite specifiers entirely if desired. This plugin comes in
 handy in situations like transpiling TypeScript source to ESM while maintaining
-the ergonomic advantage of TypeScript/NodeJS extensionless imports.
+the ergonomic advantage of TypeScript/NodeJS extensionless imports. It can also
+be run on `.d.ts` files directly to fix import paths as a post-compilation step.
 
 This plugin started off as a fork of
 [babel-plugin-transform-rewrite-imports][link-npm] that functions [more
