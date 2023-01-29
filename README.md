@@ -17,7 +17,8 @@ that do not already have one, selectively replaces extensions of specifiers that
 do, and can even rewrite specifiers entirely if desired. This plugin comes in
 handy in situations like transpiling TypeScript source to ESM while maintaining
 the ergonomic advantage of TypeScript/NodeJS extensionless imports. It can also
-be run on `.d.ts` files directly to fix import paths as a post-compilation step.
+be run on TypeScript declaration (i.e. `.d.ts`) files directly to fix import
+paths as a post-compilation step.
 
 This plugin started off as a fork of
 [babel-plugin-transform-rewrite-imports][link-npm] that functions [more
@@ -40,6 +41,7 @@ append extensions to import specifiers that do not already have one.
 - [Install](#install)
 - [Usage](#usage)
 - [Examples](#examples)
+  - [Real-World Examples](#real-world-examples)
 - [Appendix](#appendix)
   - [Published Package Details](#published-package-details)
   - [License](#license)
@@ -361,6 +363,11 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
+### Real-World Examples
+
+For some real-world examples of this babel plugin in action, check out the
+[unified-utils][5] and [projector][6] repositories.
+
 ## Appendix
 
 Further documentation can be found under [`docs/`][docs].
@@ -396,7 +403,7 @@ shaking][tree-shaking].
 
 ### License
 
-See [LICENSE][5].
+See [LICENSE][7].
 
 ## Contributing and Support
 
@@ -417,7 +424,7 @@ information.
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- remark-ignore-end -->
 
-Thanks goes to these wonderful people ([emoji key][6]):
+Thanks goes to these wonderful people ([emoji key][8]):
 
 <!-- remark-ignore-start -->
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -447,7 +454,7 @@ Thanks goes to these wonderful people ([emoji key][6]):
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- remark-ignore-end -->
 
-This project follows the [all-contributors][7] specification. Contributions of
+This project follows the [all-contributors][9] specification. Contributions of
 any kind welcome!
 
 [badge-blm]: https://xunn.at/badge-blm 'Join the movement!'
@@ -503,6 +510,8 @@ any kind welcome!
 [2]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/10
 [3]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
 [4]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
-[5]: ./LICENSE
-[6]: https://allcontributors.org/docs/en/emoji-key
-[7]: https://github.com/all-contributors/all-contributors
+[5]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[6]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
+[7]: ./LICENSE
+[8]: https://allcontributors.org/docs/en/emoji-key
+[9]: https://github.com/all-contributors/all-contributors
