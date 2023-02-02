@@ -271,7 +271,7 @@ These callback functions have the following signatures:
 ```typescript
 type AppendExtensionCallback = (context: {
   specifier: string;
-  capturingGroups: string[];
+  capturingGroups: never[];
 }) => string | undefined;
 
 type ReplaceExtensionsCallback = (context: {
