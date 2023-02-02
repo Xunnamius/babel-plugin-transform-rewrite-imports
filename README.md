@@ -1,12 +1,12 @@
 <!-- badges-start -->
 
-[![Black Lives Matter!][badge-blm]][link-blm]
-[![Last commit timestamp][badge-last-commit]][link-repo]
-[![Codecov][badge-codecov]][link-codecov]
-[![Source license][badge-license]][link-license]
-[![Monthly Downloads][badge-downloads]][link-npm]
-[![NPM version][badge-npm]][link-npm]
-[![Uses Semantic Release!][badge-semantic-release]][link-semantic-release]
+[![Black Lives Matter!][x-badge-blm-image]][x-badge-blm-link]
+[![Last commit timestamp][x-badge-lastcommit-image]][x-badge-repo-link]
+[![Codecov][x-badge-codecov-image]][x-badge-codecov-link]
+[![Source license][x-badge-license-image]][x-badge-license-link]
+[![Monthly Downloads][x-badge-downloads-image]][x-badge-npm-link]
+[![NPM version][x-badge-npm-image]][x-badge-npm-link]
+[![Uses Semantic Release!][x-badge-semanticrelease-image]][x-badge-semanticrelease-link]
 
 <!-- badges-end -->
 
@@ -21,7 +21,7 @@ be run on TypeScript declaration (i.e. `.d.ts`) files directly to fix import
 paths as a post-compilation step.
 
 This plugin started off as a fork of
-[babel-plugin-transform-rewrite-imports][link-npm] that functions [more
+[babel-plugin-transform-rewrite-imports][x-badge-npm-link] that functions [more
 consistently][1], including support for `require` and dynamic `import()`,
 replacing multiple extensions via mapping, and [reliably ignoring extensions
 that should not be replaced][2].
@@ -40,6 +40,7 @@ append extensions to import specifiers that do not already have one.
 
 - [Install](#install)
 - [Usage](#usage)
+  - [Advanced Usage](#advanced-usage)
 - [Examples](#examples)
   - [Real-World Examples](#real-world-examples)
 - [Appendix](#appendix)
@@ -250,14 +251,146 @@ module.exports = {
 
 > If a key of `replaceExtensions` begins with `^` _or_ ends with `$`, it is
 > considered a regular expression instead of an extension. Regular expression
-> replacements support substitutions of capture groups as well (e.g. `$1`, `$2`,
-> etc).
+> replacements support substitutions of capturing groups as well (e.g. `$1`,
+> `$2`, etc).
 
 `replaceExtensions` is evaluated and replacements made before `appendExtension`
 is appended to specifiers with unrecognized or missing extensions. This means an
 extensionless import specifier could be rewritten by `replaceExtensions` to have
 a recognized extension, which would then be ignored instead of having
 `appendExtension` appended to it.
+
+### Advanced Usage
+
+`replaceExtensions` and `appendExtension` both accept function callbacks as
+values everywhere strings are accepted. This can be used to provide advanced
+replacement logic.
+
+These callback functions have the following signatures:
+
+```typescript
+type AppendExtensionCallback = (context: {
+  specifier: string;
+  capturingGroups: string[];
+}) => string | undefined;
+
+type ReplaceExtensionsCallback = (context: {
+  specifier: string;
+  capturingGroups: string[];
+}) => string;
+```
+
+Where `specifier` is the [import/export specifier][5] being rewritten and
+`capturingGroups` is a simple string array of capturing groups returned by
+[`String.prototype.match()`][6]. `capturingGroups` will always be an empty array
+except when it appears within a function value of a `replaceExtensions` entry
+that has a regular expression key.
+
+When provided as the value of `appendExtension`, a string containing an
+extension should be returned (including leading dot). When provided as the value
+of a `replaceExtensions` entry, a string containing the full specifier should be
+returned. When returning a full specifier, capturing group substitutions (e.g.
+$1, $2, etc) within the returned string will be honored.
+
+Note that `specifier`, if its basename is `.` or `..` or if it ends in a
+directory separator (e.g. `/`), will have "/index" appended to the end before
+the callback is invoked. However, in the case of `appendExtension`, if the
+callback returns `undefined` (and the specifier was not matched in
+`replaceExtensions`), the specifier will not be modified in any way.
+
+By way of example (see the output of this example [here][7]):
+
+```typescript
+module.exports = {
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        // If the specifier ends with "/no-ext", do not append any extension
+        appendExtension: ({ specifier }) => {
+          return specifier.endsWith('/no-ext') ||
+            specifier.endsWith('..') ||
+            specifier == './another-thing'
+            ? undefined
+            : '.mjs';
+        },
+        replaceExtensions: {
+          // Rewrite imports of packages in a monorepo to use their actual names
+          //         v capturing group #1: capturingGroups[1]
+          '^packages/([^/]+)(/.+)?': ({ specifier, capturingGroups }) => {
+            //              ^ capturing group #2: capturingGroups[2]
+            if (
+              specifier == 'packages/root' ||
+              specifier.startsWith('packages/root/')
+            ) {
+              return `./monorepo-js${capturingGroups[2] ?? '/'}`;
+            } else if (
+              !capturingGroups[2] ||
+              capturingGroups[2].startsWith('/src/index')
+            ) {
+              return `@monorepo/$1`;
+            } else if (capturingGroups[2].startsWith('/package.json')) {
+              return `@monorepo/$1$2`;
+            } else {
+              return `@monorepo/$1/dist$2`;
+            }
+          }
+        }
+      }
+    ]
+  ]
+};
+```
+
+Further note that callback functions are [stringified and injected][8] into the
+resulting AST when transforming [certain][9] dynamic imports and require
+statements, so, to be safe, each function's contents must make no reference to
+variables outside of said function's immediate [scope][10].
+
+Good:
+
+```typescript
+module.exports = {
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        replaceExtensions: {
+          '^packages/([^/]+)(/.+)?': ({ specifier, capturingGroups }) => {
+            const myPkg = require('my-pkg');
+            myPkg.doStuff(specifier, capturingGroups);
+          }
+        }
+      }
+    ]
+  ]
+};
+```
+
+Bad:
+
+```typescript
+const myPkg = require('my-pkg');
+
+module.exports = {
+  plugins: [
+    [
+      'babel-plugin-transform-rewrite-imports',
+      {
+        replaceExtensions: {
+          '^packages/([^/]+)(/.+)?': ({ specifier, capturingGroups }) => {
+            myPkg.doStuff(specifier, capturingGroups);
+          }
+        }
+      }
+    ]
+  ]
+};
+```
+
+> Technically, you can get away with violating this rule if you're _only_ using
+> [dynamic imports/require statements with string literal arguments][11]. Be
+> careful.
 
 ## Examples
 
@@ -363,56 +496,66 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
+> See the full output of this example [here][12].
+
 ### Real-World Examples
 
 For some real-world examples of this babel plugin in action, check out the
-[unified-utils][5] and [projector][6] repositories.
+[unified-utils][13] and [babel-plugin-transform-rewrite-imports][14]
+repositories or take a peek at the [test cases][15].
 
 ## Appendix
 
-Further documentation can be found under [`docs/`][docs].
+Further documentation can be found under [`docs/`][x-repo-docs].
 
 ### Published Package Details
 
-This is a [CJS2 package][cjs-mojito] with statically-analyzable exports built by
-Babel for Node14 and above. That means both CJS2 (via `require(...)`) and ESM
-(via `import { ... } from ...` or `await import(...)`) source will load this
-package from the same entry points when using Node. This has several benefits,
-the foremost being: less code shipped/smaller package size, avoiding [dual
-package hazard][dual-package-hazard] entirely, distributables are not
+This is a [CJS2 package][x-pkg-cjs-mojito] with statically-analyzable exports
+built by Babel for Node14 and above.
+
+<details><summary>Expand details</summary>
+
+That means both CJS2 (via `require(...)`) and ESM (via `import { ... } from ...`
+or `await import(...)`) source will load this package from the same entry points
+when using Node. This has several benefits, the foremost being: less code
+shipped/smaller package size, avoiding [dual package
+hazard][x-pkg-dual-package-hazard] entirely, distributables are not
 packed/bundled/uglified, and a less complex build process.
 
 Each entry point (i.e. `ENTRY`) in [`package.json`'s
-`exports[ENTRY]`][package-json] object includes one or more [export
-conditions][exports-conditions]. These entries may or may not include: an
-[`exports[ENTRY].types`][exports-types-key] condition pointing to a type
+`exports[ENTRY]`][x-repo-package-json] object includes one or more [export
+conditions][x-pkg-exports-conditions]. These entries may or may not include: an
+[`exports[ENTRY].types`][x-pkg-exports-types-key] condition pointing to a type
 declarations file for TypeScript and IDEs, an
-[`exports[ENTRY].module`][exports-module-key] condition pointing to (usually
-ESM) source for Webpack/Rollup, an `exports[ENTRY].node` condition pointing to
-(usually CJS2) source for Node.js `require` _and `import`_, an
-`exports[ENTRY].default` condition pointing to (usually ESM) source for browsers
-and other environments, and [other conditions][exports-conditions] not
-enumerated here. Check the [package.json][package-json] file to see which export
+[`exports[ENTRY].module`][x-pkg-exports-module-key] condition pointing to
+(usually ESM) source for Webpack/Rollup, an `exports[ENTRY].node` condition
+pointing to (usually CJS2) source for Node.js `require` _and `import`_, an
+`exports[ENTRY].default` condition pointing to source for browsers and other
+environments, and [other conditions][x-pkg-exports-conditions] not enumerated
+here. Check the [package.json][x-repo-package-json] file to see which export
 conditions are supported.
 
-Though [`package.json`][package-json] includes
-[`{ "type": "commonjs" }`][local-pkg], note that the ESM entry points are ES
-module (`.mjs`) files. Finally, [`package.json`][package-json] also includes the
-[`sideEffects`][side-effects-key] key, which is `false` for optimal [tree
-shaking][tree-shaking].
+Though [`package.json`][x-repo-package-json] includes
+[`{ "type": "commonjs" }`][x-pkg-type], note that any ESM-only entry points will
+be ES module (`.mjs`) files. Finally, [`package.json`][x-repo-package-json] also
+includes the [`sideEffects`][x-pkg-side-effects-key] key, which is `false` for
+optimal [tree shaking][x-pkg-tree-shaking].
+
+</details>
 
 ### License
 
-See [LICENSE][7].
+See [LICENSE][x-repo-license].
 
 ## Contributing and Support
 
-**[New issues][choose-new-issue] and [pull requests][pr-compare] are always
-welcome and greatly appreciated! 🤩** Just as well, you can [star 🌟 this
-project][link-repo] to let me know you found it useful! ✊🏿 Thank you!
+**[New issues][x-repo-choose-new-issue] and [pull requests][x-repo-pr-compare]
+are always welcome and greatly appreciated! 🤩** Just as well, you can [star 🌟
+this project][x-badge-repo-link] to let me know you found it useful! ✊🏿 Thank
+you!
 
-See [CONTRIBUTING.md][contributing] and [SUPPORT.md][support] for more
-information.
+See [CONTRIBUTING.md][x-repo-contributing] and [SUPPORT.md][x-repo-support] for
+more information.
 
 ### Contributors
 
@@ -424,7 +567,8 @@ information.
 <!-- ALL-CONTRIBUTORS-BADGE:END -->
 <!-- remark-ignore-end -->
 
-Thanks goes to these wonderful people ([emoji key][8]):
+Thanks goes to these wonderful people ([emoji
+key][x-repo-all-contributors-emojis]):
 
 <!-- remark-ignore-start -->
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
@@ -454,64 +598,81 @@ Thanks goes to these wonderful people ([emoji key][8]):
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- remark-ignore-end -->
 
-This project follows the [all-contributors][9] specification. Contributions of
-any kind welcome!
+This project follows the [all-contributors][x-repo-all-contributors]
+specification. Contributions of any kind welcome!
 
-[badge-blm]: https://xunn.at/badge-blm 'Join the movement!'
-[badge-codecov]:
+[x-badge-blm-image]: https://xunn.at/badge-blm 'Join the movement!'
+[x-badge-blm-link]: https://xunn.at/donate-blm
+[x-badge-codecov-image]:
   https://img.shields.io/codecov/c/github/Xunnamius/babel-plugin-transform-rewrite-imports/main?style=flat-square&token=HWRIOBAAPW
   'Is this package well-tested?'
-[badge-downloads]:
+[x-badge-codecov-link]:
+  https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports
+[x-badge-downloads-image]:
   https://img.shields.io/npm/dm/babel-plugin-transform-rewrite-imports?style=flat-square
   'Number of times this package has been downloaded per month'
-[badge-last-commit]:
+[x-badge-lastcommit-image]:
   https://img.shields.io/github/last-commit/xunnamius/babel-plugin-transform-rewrite-imports?style=flat-square
   'Latest commit timestamp'
-[badge-license]:
+[x-badge-license-image]:
   https://img.shields.io/npm/l/babel-plugin-transform-rewrite-imports?style=flat-square
   "This package's source license"
-[badge-npm]:
+[x-badge-license-link]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/LICENSE
+[x-badge-npm-image]:
   https://xunn.at/npm-pkg-version/babel-plugin-transform-rewrite-imports
   'Install this package using npm or yarn!'
-[badge-semantic-release]:
-  https://img.shields.io/badge/%20%20%F0%9F%93%A6%F0%9F%9A%80-semantic--release-e10079.svg?style=flat-square
+[x-badge-npm-link]:
+  https://www.npmjs.com/package/babel-plugin-transform-rewrite-imports
+[x-badge-repo-link]:
+  https://github.com/xunnamius/babel-plugin-transform-rewrite-imports
+[x-badge-semanticrelease-image]:
+  https://xunn.at/badge-semantic-release
   'This repo practices continuous integration and deployment!'
-[choose-new-issue]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
-[cjs-mojito]:
+[x-badge-semanticrelease-link]:
+  https://github.com/semantic-release/semantic-release
+[x-pkg-cjs-mojito]:
   https://dev.to/jakobjingleheimer/configuring-commonjs-es-modules-for-nodejs-12ed#publish-only-a-cjs-distribution-with-property-exports
-[contributing]: CONTRIBUTING.md
-[docs]: docs
-[dual-package-hazard]: https://nodejs.org/api/packages.html#dual-package-hazard
-[exports-conditions]:
+[x-pkg-dual-package-hazard]:
+  https://nodejs.org/api/packages.html#dual-package-hazard
+[x-pkg-exports-conditions]:
   https://webpack.js.org/guides/package-exports#reference-syntax
-[exports-module-key]:
+[x-pkg-exports-module-key]:
   https://webpack.js.org/guides/package-exports#providing-commonjs-and-esm-version-stateless
-[exports-types-key]:
+[x-pkg-exports-types-key]:
   https://devblogs.microsoft.com/typescript/announcing-typescript-4-5-beta#packagejson-exports-imports-and-self-referencing
-[link-blm]: https://xunn.at/donate-blm
-[link-codecov]:
-  https://codecov.io/gh/Xunnamius/babel-plugin-transform-rewrite-imports
-[link-license]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/LICENSE
-[link-npm]: https://www.npmjs.com/package/babel-plugin-transform-rewrite-imports
-[link-repo]: https://github.com/xunnamius/babel-plugin-transform-rewrite-imports
-[link-semantic-release]: https://github.com/semantic-release/semantic-release
-[local-pkg]:
-  https://github.com/nodejs/node/blob/8d8e06a345043bec787e904edc9a2f5c5e9c275f/doc/api/packages.md#type
-[package-json]: package.json
-[pr-compare]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/compare
-[side-effects-key]:
+[x-pkg-side-effects-key]:
   https://webpack.js.org/guides/tree-shaking#mark-the-file-as-side-effect-free
-[support]: .github/SUPPORT.md
-[tree-shaking]: https://webpack.js.org/guides/tree-shaking
+[x-pkg-tree-shaking]: https://webpack.js.org/guides/tree-shaking
+[x-pkg-type]:
+  https://github.com/nodejs/node/blob/8d8e06a345043bec787e904edc9a2f5c5e9c275f/doc/api/packages.md#type
+[x-repo-all-contributors]: https://github.com/all-contributors/all-contributors
+[x-repo-all-contributors-emojis]: https://allcontributors.org/docs/en/emoji-key
+[x-repo-choose-new-issue]:
+  https://github.com/xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
+[x-repo-contributing]: /CONTRIBUTING.md
+[x-repo-docs]: docs
+[x-repo-license]: ./LICENSE
+[x-repo-package-json]: package.json
+[x-repo-pr-compare]:
+  https://github.com/xunnamius/babel-plugin-transform-rewrite-imports/compare
+[x-repo-support]: /.github/SUPPORT.md
 [1]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/3
 [2]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/10
 [3]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
 [4]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
-[5]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
-[6]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
-[7]: ./LICENSE
-[8]: https://allcontributors.org/docs/en/emoji-key
-[9]: https://github.com/all-contributors/all-contributors
+[5]: https://nodejs.org/api/esm.html#terminology
+[6]:
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
+[7]: ./test/fixtures/supports-callback-values/output.js
+[8]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L85-L95
+[9]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L132-L135
+[10]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
+[11]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
+[12]: ./test/fixtures/readme-examples-work/output.js
+[13]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[14]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
+[15]: ./test/fixtures
