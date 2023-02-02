@@ -5,7 +5,7 @@ ignore.*
 dist
 build
 .vscode
-!.vscode/launch.json
+!.vscode/launch.example.json
 .vercel
 .env
 .npmrc
