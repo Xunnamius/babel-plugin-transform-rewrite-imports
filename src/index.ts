@@ -1,4 +1,5 @@
-import { name as pkgName } from 'package';
+// TODO: replace with 'package'
+import { name as pkgName } from '../package.json';
 import debugFactory from 'debug';
 import template from '@babel/template';
 import * as util from '@babel/types';
