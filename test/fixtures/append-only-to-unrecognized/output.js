@@ -1,49 +1,72 @@
-const _rewrite = (importPath, options) => {
-    if (typeof importPath != 'string') {
+const _rewrite = (specifier, options) => {
+    if (typeof specifier != 'string') {
       throw new TypeError(
-        `rewrite error: expected import specifier of type string, not ${typeof importPath}`
+        `rewrite error: expected specifier of type string, not ${typeof specifier}`
       );
     }
-    let finalImportPath = importPath;
     let replacementMap;
     replacementMap = undefined;
     if (options.replaceExtensions) {
       Object.entries(options.replaceExtensions).some(([target, replacement]) => {
         if (target.startsWith('^') || target.endsWith('$')) {
           const targetRegExp = new RegExp(target);
-          if (targetRegExp.test(finalImportPath)) {
-            replacementMap = [targetRegExp, replacement];
+          const capturingGroups = Array.from(specifier.match(targetRegExp) || []);
+          if (capturingGroups.length) {
+            replacementMap = [targetRegExp, replacement, capturingGroups];
             return true;
           }
-        } else if (finalImportPath.endsWith(target)) {
-          replacementMap = [target, replacement];
+        } else if (specifier.endsWith(target)) {
+          replacementMap = [target, replacement, []];
           return true;
         }
       });
     }
+    let finalImportPath = specifier;
     if (replacementMap) {
-      const [target, replacement] = replacementMap;
-      finalImportPath = finalImportPath.replace(target, replacement);
+      const [target, replacement, capturingGroups] = replacementMap;
+      finalImportPath = finalImportPath.replace(
+        target,
+        typeof replacement == 'string'
+          ? replacement
+          : replacement({
+              specifier,
+              capturingGroups
+            })
+      );
     }
     const isRelative =
       finalImportPath.startsWith('./') ||
+      finalImportPath.startsWith('.\\') ||
       finalImportPath.startsWith('../') ||
+      finalImportPath.startsWith('..\\') ||
       finalImportPath == '.' ||
       finalImportPath == '..';
     if (options.appendExtension && isRelative) {
-      const endsWithSlash = finalImportPath.endsWith('/');
-      if (/(^\.?\.\/?$)|(\/\.?\.\/?$)/.test(finalImportPath)) {
-        finalImportPath += `${endsWithSlash ? '' : '/'}index${options.appendExtension}`;
-      } else {
-        const hasRecognizedExtension =
-          !endsWithSlash &&
-          options.recognizedExtensions.some((extension) => {
-            return finalImportPath.endsWith(extension);
-          });
-        if (!hasRecognizedExtension) {
-          finalImportPath = endsWithSlash
-            ? finalImportPath + `index${options.appendExtension}`
-            : finalImportPath + options.appendExtension;
+      const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
+      const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
+        finalImportPath
+      );
+      const extensionToAppend =
+        typeof options.appendExtension == 'string'
+          ? options.appendExtension
+          : options.appendExtension({
+              specifier,
+              capturingGroups: []
+            });
+      if (extensionToAppend !== undefined) {
+        if (basenameIsDots) {
+          finalImportPath += `${endsWithSlash ? '' : '/'}index${extensionToAppend}`;
+        } else {
+          const hasRecognizedExtension =
+            !endsWithSlash &&
+            options.recognizedExtensions.some((extension) => {
+              return finalImportPath.endsWith(extension);
+            });
+          if (!hasRecognizedExtension) {
+            finalImportPath = endsWithSlash
+              ? finalImportPath + `index${extensionToAppend}`
+              : finalImportPath + extensionToAppend;
+          }
         }
       }
     }

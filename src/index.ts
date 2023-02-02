@@ -1,4 +1,4 @@
-import { name as pkgName } from '../package.json';
+import { name as pkgName } from 'package';
 import debugFactory from 'debug';
 import template from '@babel/template';
 import * as util from '@babel/types';
@@ -7,11 +7,61 @@ import type { NodePath, PluginObj, PluginPass } from '@babel/core';
 
 const debugNamespace = `${pkgName}:index`;
 
+/**
+ * A callback function provided as a value to `Options.appendExtension` or to an
+ * entry in `Options.replaceExtensions`.
+ */
+export type Callback<ReturnType> = (context: {
+  /**
+   * The import/export specifier being evaluated by babel.
+   */
+  specifier: string;
+  /**
+   * An array of capturing groups returned by `String.prototype.match()` or an
+   * empty array if the matcher string was not a regular expression.
+   */
+  capturingGroups: string[];
+}) => ReturnType;
+
+/**
+ * The options that can be passed to this plugin from babel.
+ */
 export type Options = {
-  appendExtension?: string;
+  /**
+   * This string will be appended to all relative import specifiers that do not
+   * already have a recognized extension. Also accepts a callback function for
+   * advanced use cases.
+   *
+   * @default undefined
+   */
+  appendExtension?: string | Callback<string | undefined>;
+  /**
+   * Members of this array will be considered a "recognized extension".
+   *
+   * @default defaultRecognizedExtensions
+   */
   recognizedExtensions?: string[];
-  replaceExtensions?: Record<string, string>;
+  /**
+   * Map of specifiers to their replacements. Specifiers can be strings or
+   * regular expressions (i.e. strings that start with ^ and/or end with $). If
+   * a specifier is a regular expression, capturing group notation can be used
+   * in the replacement. Replacements can either be a string or a callback
+   * function that returns a string.
+   *
+   * @default {}
+   */
+  replaceExtensions?: Record<string, string | Callback<string>>;
+  /**
+   * If true, this plugin will generate no output.
+   *
+   * @default false
+   */
   silent?: boolean;
+  /**
+   * If true, this plugin will generate more output than usual.
+   *
+   * @default false
+   */
   verbose?: boolean;
 };
 
@@ -26,6 +76,9 @@ const globalMetadata: {
   };
 } = {};
 
+/**
+ * The default value of `Options.recognizedExtensions`.
+ */
 export const defaultRecognizedExtensions = [
   '.js',
   '.jsx',
@@ -36,6 +89,9 @@ export const defaultRecognizedExtensions = [
 
 let reporterTimeout: NodeJS.Timeout | undefined;
 
+/**
+ * A babel plugin that reliably rewrites import (and export) specifiers.
+ */
 export default function transformRewriteImports(): PluginObj<State> {
   let rewriteOptionsObjIdentifier: util.Identifier | undefined = undefined;
   let rewriteFnIdentifier: util.Identifier | undefined = undefined;
@@ -77,10 +133,10 @@ export default function transformRewriteImports(): PluginObj<State> {
                   totalFiles += 1;
                 });
 
-                if (!(state.opts.appendExtension || state.opts.replaceExtensions)) {
+                if (!state.opts.appendExtension && !state.opts.replaceExtensions) {
                   // eslint-disable-next-line no-console
                   console.log(
-                    `(${pkgName} was loaded without configuration, making it a noop)`
+                    `(${pkgName} was loaded without any meaningful configuration, making it a noop)`
                   );
                 } else {
                   // eslint-disable-next-line no-console
@@ -169,12 +225,43 @@ export default function transformRewriteImports(): PluginObj<State> {
               }
 
               if (!rewriteOptionsObjIdentifier) {
-                const rewriteOptionsObjAst = template.expression.ast(
-                  JSON.stringify({
+                const functionExpressionCache: Record<string, string> = {};
+
+                let rewriteOptionsObjString = JSON.stringify(
+                  {
                     appendExtension,
                     recognizedExtensions,
                     replaceExtensions
-                  })
+                  },
+                  (_key, value) => {
+                    // ? Stringify any function expressions we encounter
+                    if (typeof value == 'function') {
+                      const fnExprString = value.toString();
+                      const fnExprId = `%&^#%%${pkgName}%%${
+                        Object.keys(functionExpressionCache).length + 1
+                      }#^&%`;
+
+                      functionExpressionCache[fnExprId] = fnExprString;
+                      return fnExprId;
+                    }
+
+                    return value;
+                  }
+                );
+
+                // ? Unwrap the stringified functions back into real expressions
+                Object.entries(functionExpressionCache).forEach(
+                  ([fnExprId, fnExprString]) => {
+                    rewriteOptionsObjString = rewriteOptionsObjString.replaceAll(
+                      `"${fnExprId}"`,
+                      fnExprString
+                    );
+                  }
+                );
+
+                // ? Convert the JSON-ish string into a JS object
+                const rewriteOptionsObjAst = template.expression.ast(
+                  rewriteOptionsObjString
                 );
 
                 rewriteOptionsObjIdentifier =
@@ -260,22 +347,27 @@ function getFilenameFromState(state: State) {
  * `replaceMap` and an `options` object. Throws if `importPath` is not a string.
  */
 // ! This function is stringified and injected when transforming dynamic imports
-// ! so there must be no references to variables external to the function. Also,
-// ! no coverage data is available since istanbul clobbers the resulting AST.
+// ! so there must be no references to variables external to its scope. Also, no
+// ! coverage data is available since istanbul clobbers the resulting AST.
 // istanbul ignore next
 const rewrite = (
-  importPath: unknown,
+  specifier: unknown,
   options: Pick<Options, 'appendExtension' | 'replaceExtensions'> &
     Required<Pick<Options, 'recognizedExtensions'>>
 ) => {
-  if (typeof importPath != 'string') {
+  if (typeof specifier != 'string') {
     throw new TypeError(
-      `rewrite error: expected import specifier of type string, not ${typeof importPath}`
+      `rewrite error: expected specifier of type string, not ${typeof specifier}`
     );
   }
 
-  let finalImportPath = importPath;
-  let replacementMap: [target: RegExp | string, replacement: string] | undefined;
+  let replacementMap:
+    | [
+        target: RegExp | string,
+        replacement: string | Callback<string>,
+        capturingGroups: string[]
+      ]
+    | undefined;
   // ? https://github.com/microsoft/TypeScript/issues/9998
   replacementMap = undefined as typeof replacementMap;
 
@@ -283,45 +375,69 @@ const rewrite = (
     Object.entries(options.replaceExtensions).some(([target, replacement]) => {
       if (target.startsWith('^') || target.endsWith('$')) {
         const targetRegExp = new RegExp(target);
+        const capturingGroups = Array.from(specifier.match(targetRegExp) || []);
 
-        if (targetRegExp.test(finalImportPath)) {
-          replacementMap = [targetRegExp, replacement];
+        if (capturingGroups.length) {
+          replacementMap = [targetRegExp, replacement, capturingGroups];
           return true;
         }
-      } else if (finalImportPath.endsWith(target)) {
-        replacementMap = [target, replacement];
+      } else if (specifier.endsWith(target)) {
+        replacementMap = [target, replacement, []];
         return true;
       }
     });
   }
 
+  let finalImportPath = specifier;
+
   if (replacementMap) {
-    const [target, replacement] = replacementMap;
-    finalImportPath = finalImportPath.replace(target, replacement);
+    const [target, replacement, capturingGroups] = replacementMap;
+
+    finalImportPath = finalImportPath.replace(
+      target,
+      typeof replacement == 'string'
+        ? replacement
+        : replacement({ specifier, capturingGroups })
+    );
   }
 
   const isRelative =
     finalImportPath.startsWith('./') ||
+    finalImportPath.startsWith('.\\') ||
     finalImportPath.startsWith('../') ||
+    finalImportPath.startsWith('..\\') ||
     finalImportPath == '.' ||
     finalImportPath == '..';
 
   if (options.appendExtension && isRelative) {
-    const endsWithSlash = finalImportPath.endsWith('/');
+    const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
+    const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
+      finalImportPath
+    );
 
-    if (/(^\.?\.\/?$)|(\/\.?\.\/?$)/.test(finalImportPath)) {
-      finalImportPath += `${endsWithSlash ? '' : '/'}index${options.appendExtension}`;
-    } else {
-      const hasRecognizedExtension =
-        !endsWithSlash &&
-        options.recognizedExtensions.some((extension) => {
-          return finalImportPath.endsWith(extension);
-        });
+    const extensionToAppend =
+      typeof options.appendExtension == 'string'
+        ? options.appendExtension
+        : options.appendExtension({
+            specifier,
+            capturingGroups: []
+          });
 
-      if (!hasRecognizedExtension) {
-        finalImportPath = endsWithSlash
-          ? finalImportPath + `index${options.appendExtension}`
-          : finalImportPath + options.appendExtension;
+    if (extensionToAppend !== undefined) {
+      if (basenameIsDots) {
+        finalImportPath += `${endsWithSlash ? '' : '/'}index${extensionToAppend}`;
+      } else {
+        const hasRecognizedExtension =
+          !endsWithSlash &&
+          options.recognizedExtensions.some((extension) => {
+            return finalImportPath.endsWith(extension);
+          });
+
+        if (!hasRecognizedExtension) {
+          finalImportPath = endsWithSlash
+            ? finalImportPath + `index${extensionToAppend}`
+            : finalImportPath + extensionToAppend;
+        }
       }
     }
   }
