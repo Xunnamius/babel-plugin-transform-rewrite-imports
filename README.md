@@ -292,10 +292,10 @@ of a `replaceExtensions` entry, a string containing the full specifier should be
 returned. When returning a full specifier, capturing group substitutions (e.g.
 $1, $2, etc) within the returned string will be honored.
 
-Note that `specifier`, if its basename is `.` or `..` or if it ends in a
-directory separator (e.g. `/`), will have "/index" appended to the end before
-the callback is invoked. However, in the case of `appendExtension`, if the
-callback returns `undefined` (and the specifier was not matched in
+Further, in the case of `appendExtension`, note that `specifier`, if its
+basename is `.` or `..` or if it ends in a directory separator (e.g. `/`), will
+have "/index" appended to the end before the callback is invoked. However, if
+the callback returns `undefined` (and the specifier was not matched in
 `replaceExtensions`), the specifier will not be modified in any way.
 
 By way of example (see the output of this example [here][7]):
@@ -342,7 +342,7 @@ module.exports = {
 };
 ```
 
-Further note that callback functions are [stringified and injected][8] into the
+Also note that callback functions are [stringified and injected][8] into the
 resulting AST when transforming [certain][9] dynamic imports and require
 statements, so, to be safe, each function's contents must make no reference to
 variables outside of said function's immediate [scope][10].
