@@ -342,10 +342,13 @@ module.exports = {
 };
 ```
 
-Also note that callback functions are [stringified and injected][8] into the
-resulting AST when transforming [certain][9] dynamic imports and require
-statements, so, to be safe, each function's contents must make no reference to
-variables outside of said function's immediate [scope][10].
+#### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
+
+The options passed to this plugin are [transpiled and injected][8] into the
+resulting AST when transforming dynamic imports and require statements [that do
+not have a string literal as the first argument][9]. Therefore, to be safe,
+**callback functions must not reference variables outside of their immediate
+[scope][10]**.
 
 Good:
 
@@ -388,9 +391,9 @@ module.exports = {
 };
 ```
 
-> Technically, you can get away with violating this rule if you're _only_ using
-> [dynamic imports/require statements with string literal arguments][11]. Be
-> careful.
+Technically, you can get away with violating this rule if you're _sure_ you'll
+only ever use [dynamic imports/require statements with string literal
+arguments][11].
 
 ## Examples
 
@@ -666,9 +669,9 @@ specification. Contributions of any kind welcome!
   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
 [7]: ./test/fixtures/supports-callback-values/output.js
 [8]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L85-L95
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
 [9]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L132-L135
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
 [10]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
 [11]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
