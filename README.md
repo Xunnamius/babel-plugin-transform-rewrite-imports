@@ -21,12 +21,12 @@ be run on TypeScript declaration (i.e. `.d.ts`) files directly to fix import
 paths as a post-compilation step.
 
 This plugin started off as a fork of
-[babel-plugin-transform-rewrite-imports][x-badge-npm-link] that functions [more
+[babel-plugin-add-import-extension](https://github.com/karlprieb/babel-plugin-add-import-extension) that functions [more
 consistently][1], including support for `require` and dynamic `import()`,
 replacing multiple extensions via mapping, and [reliably ignoring extensions
 that should not be replaced][2].
 
-This plugin is similar in intent to [babel-plugin-replace-import-extension][3]
+This plugin is similar in intent to [babel-plugin-replace-import-extension]()
 and [babel-plugin-transform-rename-import][4] but with the ability to rewrite
 both `require` and dynamic `import()` statements, memoize rewrite function AST
 and options as globals for substantial comparative output size reduction, and
@@ -660,8 +660,8 @@ specification. Contributions of any kind welcome!
 [x-repo-pr-compare]:
   https://github.com/xunnamius/babel-plugin-transform-rewrite-imports/compare
 [x-repo-support]: /.github/SUPPORT.md
-[1]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/3
-[2]: https://codeberg.org/karl/babel-plugin-transform-rewrite-imports/issues/10
+[1]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/3
+[2]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/10
 [3]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
 [4]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
 [5]: https://nodejs.org/api/esm.html#terminology
