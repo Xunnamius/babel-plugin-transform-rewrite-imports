@@ -26,7 +26,7 @@ consistently][1], including support for `require` and dynamic `import()`,
 replacing multiple extensions via mapping, and [reliably ignoring extensions
 that should not be replaced][2].
 
-This plugin is similar in intent to [babel-plugin-replace-import-extension]()
+This plugin is similar in intent to [babel-plugin-replace-import-extension](https://www.npmjs.com/package/babel-plugin-replace-import-extension)
 and [babel-plugin-transform-rename-import][4] but with the ability to rewrite
 both `require` and dynamic `import()` statements, memoize rewrite function AST
 and options as globals for substantial comparative output size reduction, and
