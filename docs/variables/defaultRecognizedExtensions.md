@@ -12,4 +12,4 @@ The default value of `Options.recognizedExtensions`.
 
 ## Defined in
 
-[index.ts:88](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/0be1eda4a2b30709c0755c0ffd994f51ba295498/src/index.ts#L88)
+[index.ts:90](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/19e1588c04e6526fdd6fd5327755da13326abcaa/src/index.ts#L90)

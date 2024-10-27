@@ -80,4 +80,4 @@ false
 
 ## Defined in
 
-[index.ts:35](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/0be1eda4a2b30709c0755c0ffd994f51ba295498/src/index.ts#L35)
+[index.ts:48](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/19e1588c04e6526fdd6fd5327755da13326abcaa/src/index.ts#L48)
