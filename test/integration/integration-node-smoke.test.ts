@@ -86,11 +86,16 @@ for (const nodeVersion of NODE_VERSIONS_UNDER_TEST) {
           const codePath2 = `${context.root}/code-2.js`;
           const codePath3 = `${context.root}/code-3.js`;
 
-          expect(readFileSync(codePath1, 'utf8')).toBe(
-            readFileSync(`${__dirname}/assets/output-1.js`, 'utf8')
-          );
+          function read(path: string) {
+            return readFileSync(path, 'utf8').replaceAll(
+              '/fake/filepath.ts',
+              `${context.root}/code-1.ts`
+            );
+          }
 
-          new Script(readFileSync(codePath2, 'utf8'), {
+          expect(read(codePath1)).toBe(read(`${__dirname}/assets/output-1.js`).trim());
+
+          new Script(read(codePath2), {
             filename: codePath2
           }).runInContext(
             createContext({
@@ -109,7 +114,7 @@ for (const nodeVersion of NODE_VERSIONS_UNDER_TEST) {
 
           const result = await run(
             'npx',
-            ['node', '--input-type=module', '-e', readFileSync(codePath3, 'utf8')],
+            ['node', '--input-type=module', '-e', read(codePath3)],
             { cwd: context.root }
           );
 

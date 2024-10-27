@@ -30,7 +30,8 @@ const _rewrite = (specifier, options) => {
           ? replacement
           : replacement({
               specifier,
-              capturingGroups
+              capturingGroups,
+              filepath: '/fake/filepath.ts'
             })
       );
     }
@@ -51,7 +52,8 @@ const _rewrite = (specifier, options) => {
           ? options.appendExtension
           : options.appendExtension({
               specifier,
-              capturingGroups: []
+              capturingGroups: [],
+              filepath: '/fake/filepath.ts'
             });
       if (extensionToAppend !== undefined) {
         if (basenameIsDots) {
@@ -90,11 +92,11 @@ import { add, double } from './src/numbers';
 import { curry } from './src/typed/curry.xts';
 import styles from './src/less/styles.less';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 
 export { triple, quadruple } from './lib/num-utils';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 
 const thing = await import('./thing');
 const anotherThing = require('./another-thing');

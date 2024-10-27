@@ -11,8 +11,17 @@ module.exports = {
     }
   },
   babelOptions: {
+    filename: '/fake/filepath.ts',
     comments: false,
     presets: [
+      [
+        '@babel/preset-typescript',
+        {
+          allowDeclareFields: true,
+          // ? This needs to be here or unused imports are elided
+          onlyRemoveTypeImports: true
+        }
+      ],
       [
         '@babel/preset-env',
         {

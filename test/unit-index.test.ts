@@ -16,14 +16,6 @@ pluginTester({
           modules: false,
           targets: 'maintained node versions'
         }
-      ],
-      [
-        '@babel/preset-typescript',
-        {
-          allowDeclareFields: true,
-          // ? This needs to be here or unused imports are elided
-          onlyRemoveTypeImports: true
-        }
       ]
     ]
   }

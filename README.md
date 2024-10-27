@@ -15,22 +15,23 @@
 A babel plugin that reliably adds extensions to import (and export) specifiers
 that do not already have one, selectively replaces extensions of specifiers that
 do, and can even rewrite specifiers entirely if desired. This plugin comes in
-handy in situations like transpiling TypeScript source to ESM while maintaining
-the ergonomic advantage of TypeScript/NodeJS extensionless imports. It can also
-be run on TypeScript declaration (i.e. `.d.ts`) files directly to fix import
-paths as a post-compilation step.
+handy in situations like transpiling TypeScript source with extensionless
+imports to ESM, or [changing alias paths][1] in TypeScript declaration (i.e.
+`.d.ts`) files into relative paths suitable for publishing. This plugin does
+this more reliably and correctly than prior art like tsconfig-paths and
+[tsconfig-replace-paths][2].
 
-This plugin started off as a fork of
-[babel-plugin-add-import-extension](https://github.com/karlprieb/babel-plugin-add-import-extension) that functions [more
-consistently][1], including support for `require` and dynamic `import()`,
-replacing multiple extensions via mapping, and [reliably ignoring extensions
-that should not be replaced][2].
+This plugin started off as a fork of [babel-plugin-add-import-extension][3] that
+functions [more consistently][4], including support for `require` and dynamic
+`import()`, replacing multiple extensions via mapping, and [reliably ignoring
+extensions that should not be replaced][5].
 
-This plugin is similar in intent to [babel-plugin-replace-import-extension](https://www.npmjs.com/package/babel-plugin-replace-import-extension)
-and [babel-plugin-transform-rename-import][4] but with the ability to rewrite
-both `require` and dynamic `import()` statements, memoize rewrite function AST
-and options as globals for substantial comparative output size reduction, and
-append extensions to import specifiers that do not already have one.
+This plugin is similar in intent to [babel-plugin-replace-import-extension][6]
+and [babel-plugin-transform-rename-import][7] but with the ability to rewrite
+both `require` and dynamic `import()` statements, memoize the `rewrite` function
+AST and any passed options as globals for substantial comparative output size
+reduction, and append extensions to import specifiers that do not already have
+one.
 
 ---
 
@@ -272,19 +273,23 @@ These callback functions have the following signatures:
 type AppendExtensionCallback = (context: {
   specifier: string;
   capturingGroups: never[];
+  filepath: string;
 }) => string | undefined;
 
 type ReplaceExtensionsCallback = (context: {
   specifier: string;
   capturingGroups: string[];
+  filepath: string;
 }) => string;
 ```
 
-Where `specifier` is the [import/export specifier][5] being rewritten and
+Where `specifier` is the [import/export specifier][8] being rewritten,
 `capturingGroups` is a simple string array of capturing groups returned by
-[`String.prototype.match()`][6]. `capturingGroups` will always be an empty array
-except when it appears within a function value of a `replaceExtensions` entry
-that has a regular expression key.
+[`String.prototype.match()`][9], and `filename` is an absolute path to the file
+in which the rewrite is occurring. `capturingGroups` will always be an empty
+array except when it appears within a function value of a `replaceExtensions`
+entry that has a regular expression key. `filename` is taken directly from
+`babelOptions.filename`.
 
 When provided as the value of `appendExtension`, a string containing an
 extension should be returned (including leading dot). When provided as the value
@@ -298,7 +303,7 @@ have "/index" appended to the end before the callback is invoked. However, if
 the callback returns `undefined` (and the specifier was not matched in
 `replaceExtensions`), the specifier will not be modified in any way.
 
-By way of example (see the output of this example [here][7]):
+By way of example (see the output of this example [here][10]):
 
 ```typescript
 module.exports = {
@@ -344,11 +349,24 @@ module.exports = {
 
 #### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
 
-The options passed to this plugin are [transpiled and injected][8] into the
-resulting AST when transforming dynamic imports and require statements [that do
-not have a string literal as the first argument][9]. Therefore, to be safe,
-**callback functions must not reference variables outside of their immediate
-[scope][10]**.
+When transforming dynamic imports and require statements [that do not have a
+string literal as the first argument][11], the options passed to this plugin are
+[transpiled and injected][12] into the resulting AST.
+
+> \[!CAUTION]
+>
+> This means you take a slight performance hit when you do arbitrary dynamic
+> imports that cannot be statically analyzed (e.g.
+> `require(getMd5Hash() + '.txt')`). These types of dynamic imports are usually
+> code smell, but this library is built to accommodate them regardless.
+>
+> However, **if you are NOT doing _arbitrary_ dynamic imports**, which are
+> dynamic imports where the first argument is not a string literal, then this
+> section is of no relevance to you since nothing extra will be injected into
+> the AST.
+
+Therefore, to be safe, **callback functions must not reference variables outside
+of their immediate [scope][13]**.
 
 Good:
 
@@ -393,7 +411,7 @@ module.exports = {
 
 Technically, you can get away with violating this rule if you're _sure_ you'll
 only ever use [dynamic imports/require statements with string literal
-arguments][11].
+arguments][14].
 
 ## Examples
 
@@ -437,14 +455,18 @@ import { add, double } from './src/numbers';
 import { curry } from './src/typed/curry.ts';
 import styles from './src/less/styles.less';
 
-// Note that, unless otherwise configured, babel deletes type-only imports.
-// Since they're only relevant for TypeScript, they are ignored by this plugin.
+// Note that, unless otherwise configured, @babel/preset-typescript deletes
+// type-only imports. If you want to operate on type imports and/or .d.ts files,
+// use @babel/syntax-typescript instead. See ./test/supports-type-only for
+// an example.
 import type * as AllTypes from './lib/something.mjs';
 
 export { triple, quadruple } from './lib/num-utils';
 
-// Note that, unless otherwise configured, babel deletes type-only exports.
-// Since they're only relevant for TypeScript, they are ignored by this plugin.
+// Note that, unless otherwise configured, @babel/preset-typescript deletes
+// type-only exports. If you want to operate on type imports and/or .d.ts files,
+// use @babel/syntax-typescript instead. See ./test/supports-type-only for
+// an example.
 export type { NamedType } from './lib/something';
 
 const thing = await import('./thing');
@@ -499,13 +521,13 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
-> See the full output of this example [here][12].
+> See the full output of this example [here][15].
 
 ### Real-World Examples
 
 For some real-world examples of this babel plugin in action, check out the
-[unified-utils][13] and [babel-plugin-transform-rewrite-imports][14]
-repositories or take a peek at the [test cases][15].
+[unified-utils][16] and [babel-plugin-transform-rewrite-imports][17]
+repositories or take a peek at the [test cases][18].
 
 ## Appendix
 
@@ -514,7 +536,7 @@ Further documentation can be found under [`docs/`][x-repo-docs].
 ### Published Package Details
 
 This is a [CJS2 package][x-pkg-cjs-mojito] with statically-analyzable exports
-built by Babel for Node14 and above.
+built by Babel for Node.js versions that are not end-of-life.
 
 <details><summary>Expand details</summary>
 
@@ -597,7 +619,6 @@ key][x-repo-all-contributors-emojis]):
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
-
 <!-- ALL-CONTRIBUTORS-LIST:END -->
 <!-- remark-ignore-end -->
 
@@ -660,22 +681,26 @@ specification. Contributions of any kind welcome!
 [x-repo-pr-compare]:
   https://github.com/xunnamius/babel-plugin-transform-rewrite-imports/compare
 [x-repo-support]: /.github/SUPPORT.md
-[1]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/3
-[2]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/10
-[3]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
-[4]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
-[5]: https://nodejs.org/api/esm.html#terminology
-[6]:
-  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
-[7]: ./test/fixtures/supports-callback-values/output.js
-[8]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
+[1]:
+  https://www.reddit.com/r/typescript/comments/9mdfio/change_back_your_alias_paths_to_relative_paths_in
+[2]: https://www.npmjs.com/package/tsconfig-replace-paths
+[3]: https://github.com/karlprieb/babel-plugin-add-import-extension
+[4]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/3
+[5]: https://codeberg.org/karl/babel-plugin-add-import-extension/issues/10
+[6]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
+[7]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
+[8]: https://nodejs.org/api/esm.html#terminology
 [9]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
-[10]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
+[10]: ./test/fixtures/supports-callback-values/output.js
 [11]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
+[12]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
+[13]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
+[14]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
-[12]: ./test/fixtures/readme-examples-work/output.js
-[13]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
-[14]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
-[15]: ./test/fixtures
+[15]: ./test/fixtures/readme-examples-work/output.js
+[16]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[17]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
+[18]: ./test/fixtures

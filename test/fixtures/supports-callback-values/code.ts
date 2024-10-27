@@ -25,12 +25,12 @@ import advanced11 from 'packages/root/src/file-name';
 import advanced12 from 'packages/root/src/no-ext';
 import advanced13 from 'packages/root/lib/sub-pkg/file-name.js';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 import type * as AllTypes from './lib/something.mjs';
 
 export { triple, quadruple } from './lib/num-utils';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 export type { NamedType } from './lib/something';
 
 const thing = await import('./thing');

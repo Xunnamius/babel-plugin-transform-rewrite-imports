@@ -30,7 +30,8 @@ const _rewrite = (specifier, options) => {
           ? replacement
           : replacement({
               specifier,
-              capturingGroups
+              capturingGroups,
+              filepath: '/fake/filepath.ts'
             })
       );
     }
@@ -51,7 +52,8 @@ const _rewrite = (specifier, options) => {
           ? options.appendExtension
           : options.appendExtension({
               specifier,
-              capturingGroups: []
+              capturingGroups: [],
+              filepath: '/fake/filepath.ts'
             });
       if (extensionToAppend !== undefined) {
         if (basenameIsDots) {
@@ -121,11 +123,11 @@ import advanced11 from './monorepo-js/src/file-name.mjs';
 import advanced12 from './monorepo-js/src/no-ext';
 import advanced13 from './monorepo-js/lib/sub-pkg/file-name.js';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 
 export { triple, quadruple } from './lib/num-utils.mjs';
 
-// Note that, unless otherwise configured, babel deletes type-only imports
+// Note that, by default, babel-preset-typescript deletes type-only imports
 
 const thing = await import('./thing.mjs');
 const anotherThing = require('./another-thing');

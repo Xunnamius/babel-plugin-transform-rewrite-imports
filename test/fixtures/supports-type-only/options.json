@@ -1,0 +1,14 @@
+{
+  "title": "supports various type-only imports",
+  "pluginOptions": {
+    "appendExtension": ".jsx",
+    "recognizedExtensions": [".js", ".jsx", ".mjs", ".cjs", ".json"],
+    "replaceExtensions": {
+      ".ts": ".jsx"
+    }
+  },
+  "babelOptions": {
+    "filename": "/fake/expected/filepath.ts",
+    "plugins": ["@babel/plugin-syntax-typescript"]
+  }
+}

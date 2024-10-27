@@ -24,7 +24,8 @@ const _rewrite = (specifier, options) => {
       const [target, replacement, capturingGroups] = replacementMap;
       finalImportPath = finalImportPath.replace(target, typeof replacement === 'string' ? replacement : replacement({
         specifier,
-        capturingGroups
+        capturingGroups,
+        filepath: '/fake/filepath.ts'
       }));
     }
     const isRelative = finalImportPath.startsWith('./') || finalImportPath.startsWith('.\\') || finalImportPath.startsWith('../') || finalImportPath.startsWith('..\\') || finalImportPath === '.' || finalImportPath === '..';
@@ -33,7 +34,8 @@ const _rewrite = (specifier, options) => {
       const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(finalImportPath);
       const extensionToAppend = typeof options.appendExtension === 'string' ? options.appendExtension : options.appendExtension({
         specifier,
-        capturingGroups: []
+        capturingGroups: [],
+        filepath: '/fake/filepath.ts'
       });
       if (extensionToAppend !== undefined) {
         if (basenameIsDots) {

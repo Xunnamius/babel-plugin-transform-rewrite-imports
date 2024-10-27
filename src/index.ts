@@ -14,7 +14,7 @@ const debugNamespace = `${pkgName}:index`;
  */
 export type Callback<ReturnType> = (context: {
   /**
-   * The import/export specifier being evaluated by babel.
+   * The import/export specifier being evaluated by Babel.
    */
   specifier: string;
   /**
@@ -22,6 +22,11 @@ export type Callback<ReturnType> = (context: {
    * empty array if the matcher string was not a regular expression.
    */
   capturingGroups: string[];
+  /**
+   * The absolute path of the file containing the specifier being evaluated by
+   * Babel.
+   */
+  filepath: string;
 }) => ReturnType;
 
 /**
@@ -108,6 +113,7 @@ export default function transformRewriteImports(): PluginObj<State> {
           clearTimeout(reporterTimeout);
         },
         exit(_, state) {
+          // istanbul ignore next
           if (process.env.NODE_ENV !== 'test') {
             reporterTimeout = setTimeout(() => {
               if (!state.opts.silent) {
@@ -159,7 +165,47 @@ export default function transformRewriteImports(): PluginObj<State> {
       ImportDeclaration: declarationHandler,
       ExportAllDeclaration: declarationHandler,
       ExportNamedDeclaration: declarationHandler,
-      // ? dynamic imports and require statements
+      // ? Type-only imports using dynamic-import-style syntax
+      TSImportType(path, state) {
+        const { appendExtension, recognizedExtensions, replaceExtensions } = {
+          ...state.opts,
+          recognizedExtensions: (state.opts.recognizedExtensions ||
+            defaultRecognizedExtensions) as string[]
+        };
+
+        const { argument: specifier } = path.node;
+        const specifierType = 'type-only dynamic import';
+
+        const metadata = getLocalMetadata(state);
+        metadata.totalImports += 1;
+
+        if (appendExtension || replaceExtensions) {
+          const filepath = getFilenameFromState(state);
+
+          const importPath = specifier.value;
+          const rewrittenPath = rewrite(importPath, {
+            appendExtension,
+            recognizedExtensions,
+            replaceExtensions,
+            filepath
+          });
+
+          if (importPath === rewrittenPath) {
+            debug(
+              `[%O]: %O evaluated but unchanged: "%O"`,
+              filepath,
+              specifierType,
+              importPath
+            );
+          } else {
+            path.node.argument = util.stringLiteral(rewrittenPath);
+            const debugString = `[TSImportType]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
+            metadata.transformedImports.push(debugString);
+            debug(debugString);
+          }
+        }
+      },
+      // ? Dynamic imports and require statements
       CallExpression(path, state) {
         const isDynamicImport = path.node.callee?.type === 'Import';
         const isRequire =
@@ -183,27 +229,29 @@ export default function transformRewriteImports(): PluginObj<State> {
 
           if (appendExtension || replaceExtensions) {
             const specifierType = isDynamicImport ? 'dynamic import' : 'require';
+            const filepath = getFilenameFromState(state);
 
             if (!firstArgument) {
+              // TODO: replace this (and others) with rejoinder
               // eslint-disable-next-line no-console
               console.warn(
-                `[${getFilenameFromState(
-                  state
-                )}]: warning: a ${specifierType} statement has no arguments!`
+                `[${filepath}]: warning: a ${specifierType} statement has no arguments!`
               );
             } else if (firstArgumentIsStringLiteral) {
               const importPath = (firstArgument as util.StringLiteral).value;
               const rewrittenPath = rewrite(importPath, {
                 appendExtension,
                 recognizedExtensions,
-                replaceExtensions
+                replaceExtensions,
+                filepath
               });
 
               if (importPath === rewrittenPath) {
                 debug(
-                  `[${getFilenameFromState(
-                    state
-                  )}]: ${specifierType} evaluated but unchanged: "${importPath}"`
+                  `[%O]: %O evaluated but unchanged: "%O"`,
+                  filepath,
+                  specifierType,
+                  importPath
                 );
               } else {
                 path.node.arguments[0] = util.stringLiteral(rewrittenPath);
@@ -215,7 +263,15 @@ export default function transformRewriteImports(): PluginObj<State> {
               const globalScope = path.scope.getProgramParent();
 
               if (!rewriteFnIdentifier) {
-                const rewriteFnAst = template.expression.ast(rewrite.toString());
+                const injectedRewriter = rewrite
+                  .toString()
+                  // ? We need to inline the value of options.filepath since it
+                  // ? is not resolvable at runtime
+                  .replaceAll(/\boptions\.filepath\b/g, `'${filepath}'`);
+
+                debug('[CallExpression]: injectedRewriter: %O', injectedRewriter);
+
+                const rewriteFnAst = template.expression.ast(injectedRewriter);
                 rewriteFnIdentifier = globalScope.generateUidIdentifier('_rewrite');
 
                 globalScope.push({
@@ -308,11 +364,13 @@ function declarationHandler(
   if (path.node.source && (state.opts.appendExtension || state.opts.replaceExtensions)) {
     const importPath = path.node.source.value;
     const specifierType = path.node.type.startsWith('Import') ? 'import' : 'export';
+    const filepath = getFilenameFromState(state);
 
     const rewrittenPath = rewrite(importPath, {
       ...state.opts,
       recognizedExtensions: (state.opts.recognizedExtensions ||
-        defaultRecognizedExtensions) as string[]
+        defaultRecognizedExtensions) as string[],
+      filepath
     });
 
     if (importPath === rewrittenPath) {
@@ -340,7 +398,7 @@ function getLocalMetadata(state: State) {
 }
 
 function getFilenameFromState(state: State) {
-  return state.filename || '<no path>';
+  return state.filename || '<no filepath was set in your babel configuration>';
 }
 
 /**
@@ -350,11 +408,14 @@ function getFilenameFromState(state: State) {
 // ! This function is stringified and injected when transforming dynamic imports
 // ! so there must be no references to variables external to its scope. Also, no
 // ! coverage data is available since istanbul clobbers the resulting AST.
+//
+// ! Note that all references to options.filepath are replaced by an inlined
+// ! string literal when this function is stringified.
 // istanbul ignore next
 const rewrite = (
   specifier: unknown,
   options: Pick<Options, 'appendExtension' | 'replaceExtensions'> &
-    Required<Pick<Options, 'recognizedExtensions'>>
+    Required<Pick<Options, 'recognizedExtensions'>> & { filepath: string }
 ) => {
   if (typeof specifier !== 'string') {
     throw new TypeError(
@@ -398,7 +459,7 @@ const rewrite = (
       target,
       typeof replacement === 'string'
         ? replacement
-        : replacement({ specifier, capturingGroups })
+        : replacement({ specifier, capturingGroups, filepath: options.filepath })
     );
   }
 
@@ -421,7 +482,8 @@ const rewrite = (
         ? options.appendExtension
         : options.appendExtension({
             specifier,
-            capturingGroups: []
+            capturingGroups: [],
+            filepath: options.filepath
           });
 
     if (extensionToAppend !== undefined) {
