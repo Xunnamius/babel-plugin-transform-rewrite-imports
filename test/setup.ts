@@ -6,7 +6,7 @@ import { name as pkgName, version as pkgVersion } from '../package.json';
 
 import debugFactory from 'debug';
 import execa from 'execa';
-import glob from 'glob';
+import { globSync } from 'glob';
 import uniqueFilename from 'unique-filename';
 //import gitFactory from 'simple-git';
 // ? https://github.com/jest-community/jest-extended#typescript
@@ -15,7 +15,7 @@ import 'jest-extended/all';
 
 import type { Debugger } from 'debug';
 import type { ExecaReturnValue } from 'execa';
-import type { Promisable } from 'type-fest';
+import type { PackageJson, Promisable } from 'type-fest';
 //import type { SimpleGit } from 'simple-git';
 
 // TODO: automated tests against both Windows and Linux (and for all tooling)
@@ -598,13 +598,18 @@ export function npmCopySelfFixture(): MockFixture {
     setup: async (context) => {
       const root = resolvePath(__dirname, '..');
 
-      const { files: patterns } = await import('../package.json');
+      const { files: patterns } = (await import(
+        '../package.json'
+      )) as unknown as PackageJson;
 
-      const sourcePaths = patterns.flatMap((p) => glob.sync(p, { cwd: root, root }));
+      const sourcePaths =
+        patterns?.flatMap((p) => globSync(p, { cwd: root, root })) || [];
+
       const destinationPath = resolvePath(
         context.root,
         joinPath('node_modules', pkgName)
       );
+
       const destPkgJson = resolvePath(destinationPath, 'package.json');
 
       await mkdir({ paths: [destinationPath], context });

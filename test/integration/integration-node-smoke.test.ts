@@ -101,6 +101,7 @@ for (const nodeVersion of NODE_VERSIONS_UNDER_TEST) {
             {
               displayErrors: true,
               breakOnSigint: true,
+              // @ts-expect-error: need to investigate if this is still needed
               microtaskMode: 'afterEvaluate'
             }
           );

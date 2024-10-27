@@ -8,7 +8,7 @@ const someFn = (str: string) => `${str}-2`;
 
 const import1 = await import(`./import-1`);
 const import2 = await import(someFn(`./${someVariable}`) + '.json', {
-  assert: { type: 'json' }
+  with: { type: 'json' }
 });
 const import3 = await import(someOtherVariable);
 
