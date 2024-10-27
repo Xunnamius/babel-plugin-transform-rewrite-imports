@@ -3,7 +3,6 @@ const _rewrite = (specifier, options) => {
       throw new TypeError(`rewrite error: expected specifier of type string, not ${typeof specifier}`);
     }
     let replacementMap;
-    replacementMap = undefined;
     if (options.replaceExtensions) {
       Object.entries(options.replaceExtensions).some(([target, replacement]) => {
         if (target.startsWith('^') || target.endsWith('$')) {

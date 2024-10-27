@@ -5,7 +5,6 @@ const _rewrite = (specifier, options) => {
       );
     }
     let replacementMap;
-    replacementMap = undefined;
     if (options.replaceExtensions) {
       Object.entries(options.replaceExtensions).some(([target, replacement]) => {
         if (target.startsWith('^') || target.endsWith('$')) {

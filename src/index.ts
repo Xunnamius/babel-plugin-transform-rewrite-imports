@@ -6,7 +6,20 @@ import * as util from '@babel/types';
 
 import type { NodePath, PluginObj, PluginPass } from '@babel/core';
 
-const debugNamespace = `${pkgName}:index`;
+const debugNamespace = pkgName;
+const debug = debugFactory(debugNamespace);
+const debugRewrite = debug.extend('rewrite');
+
+const globalMetadata: {
+  [path: string]: {
+    totalImports: number;
+    transformedImports: string[];
+  };
+} = {};
+
+let reporterTimeout: NodeJS.Timeout | undefined;
+
+type State = PluginPass & { opts: Options };
 
 /**
  * A callback function provided as a value to `Options.appendExtension` or to an
@@ -71,17 +84,6 @@ export type Options = {
   verbose?: boolean;
 };
 
-type State = PluginPass & { opts: Options };
-
-const debug = debugFactory(debugNamespace);
-
-const globalMetadata: {
-  [path: string]: {
-    totalImports: number;
-    transformedImports: string[];
-  };
-} = {};
-
 /**
  * The default value of `Options.recognizedExtensions`.
  */
@@ -92,8 +94,6 @@ export const defaultRecognizedExtensions = [
   '.cjs',
   '.json'
 ] as const;
-
-let reporterTimeout: NodeJS.Timeout | undefined;
 
 /**
  * A babel plugin that reliably rewrites import (and export) specifiers.
@@ -162,9 +162,9 @@ export default function transformRewriteImports(): PluginObj<State> {
           }
         }
       },
-      ImportDeclaration: declarationHandler,
-      ExportAllDeclaration: declarationHandler,
-      ExportNamedDeclaration: declarationHandler,
+      ImportDeclaration: declarationHandler('ImportDeclaration'),
+      ExportAllDeclaration: declarationHandler('ExportAllDeclaration'),
+      ExportNamedDeclaration: declarationHandler('ExportNamedDeclaration'),
       // ? Type-only imports using dynamic-import-style syntax
       TSImportType(path, state) {
         const { appendExtension, recognizedExtensions, replaceExtensions } = {
@@ -174,15 +174,15 @@ export default function transformRewriteImports(): PluginObj<State> {
         };
 
         const { argument: specifier } = path.node;
+        const importPath = specifier.value;
         const specifierType = 'type-only dynamic import';
-
+        const filepath = getFilenameFromState(state);
         const metadata = getLocalMetadata(state);
         metadata.totalImports += 1;
 
-        if (appendExtension || replaceExtensions) {
-          const filepath = getFilenameFromState(state);
+        debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
-          const importPath = specifier.value;
+        if (appendExtension || replaceExtensions) {
           const rewrittenPath = rewrite(importPath, {
             appendExtension,
             recognizedExtensions,
@@ -191,17 +191,28 @@ export default function transformRewriteImports(): PluginObj<State> {
           });
 
           if (importPath === rewrittenPath) {
-            debug(
-              `[%O]: %O evaluated but unchanged: "%O"`,
+            const [, ...debugArgs] = buildDebugString({
+              kind: 'TSImportType',
               filepath,
               specifierType,
-              importPath
-            );
+              messageOrSpecifier: 'evaluated but unchanged',
+              resultSpecifier: rewrittenPath
+            });
+
+            debug(...debugArgs);
           } else {
             path.node.argument = util.stringLiteral(rewrittenPath);
-            const debugString = `[TSImportType]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
+
+            const [debugString, ...debugArgs] = buildDebugString({
+              kind: 'TSImportType',
+              filepath,
+              specifierType,
+              messageOrSpecifier: `"${importPath}"`,
+              resultSpecifier: rewrittenPath
+            });
+
             metadata.transformedImports.push(debugString);
-            debug(debugString);
+            debug(...debugArgs);
           }
         }
       },
@@ -224,21 +235,32 @@ export default function transformRewriteImports(): PluginObj<State> {
         };
 
         if (isDynamicImport || isRequire) {
+          const filepath = getFilenameFromState(state);
+
+          const importPath = firstArgumentIsStringLiteral
+            ? firstArgument.value
+            : '(not determinable)';
+
+          const specifierType = isDynamicImport ? 'dynamic import' : 'require';
           const metadata = getLocalMetadata(state);
+
           metadata.totalImports += 1;
+          debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
           if (appendExtension || replaceExtensions) {
-            const specifierType = isDynamicImport ? 'dynamic import' : 'require';
-            const filepath = getFilenameFromState(state);
-
             if (!firstArgument) {
-              // TODO: replace this (and others) with rejoinder
+              const [debugString] = buildDebugString({
+                kind: 'CallExpression',
+                filepath,
+                specifierType,
+                messageOrSpecifier:
+                  'warning: a ${specifierType} statement has no arguments!',
+                resultSpecifier: '(warning)'
+              });
+
               // eslint-disable-next-line no-console
-              console.warn(
-                `[${filepath}]: warning: a ${specifierType} statement has no arguments!`
-              );
+              console.warn(debugString);
             } else if (firstArgumentIsStringLiteral) {
-              const importPath = (firstArgument as util.StringLiteral).value;
               const rewrittenPath = rewrite(importPath, {
                 appendExtension,
                 recognizedExtensions,
@@ -247,17 +269,28 @@ export default function transformRewriteImports(): PluginObj<State> {
               });
 
               if (importPath === rewrittenPath) {
-                debug(
-                  `[%O]: %O evaluated but unchanged: "%O"`,
+                const [, ...debugArgs] = buildDebugString({
+                  kind: 'CallExpression',
                   filepath,
                   specifierType,
-                  importPath
-                );
+                  messageOrSpecifier: 'evaluated but unchanged',
+                  resultSpecifier: rewrittenPath
+                });
+
+                debug(...debugArgs);
               } else {
                 path.node.arguments[0] = util.stringLiteral(rewrittenPath);
-                const debugString = `[CallExpression]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
+
+                const [debugString, ...debugArgs] = buildDebugString({
+                  kind: 'CallExpression',
+                  filepath,
+                  specifierType,
+                  messageOrSpecifier: `"${importPath}"`,
+                  resultSpecifier: rewrittenPath
+                });
+
                 metadata.transformedImports.push(debugString);
-                debug(debugString);
+                debug(...debugArgs);
               }
             } else {
               const globalScope = path.scope.getProgramParent();
@@ -267,9 +300,19 @@ export default function transformRewriteImports(): PluginObj<State> {
                   .toString()
                   // ? We need to inline the value of options.filepath since it
                   // ? is not resolvable at runtime
-                  .replaceAll(/\boptions\.filepath\b/g, `'${filepath}'`);
+                  .replaceAll(/\boptions\.filepath\b/g, `'${filepath}'`)
+                  // ? We also need to remove all debug calls
+                  .replaceAll(/(\n\s*)?debugRewrite\([^)]*\);\s*(?=\n)/g, '');
 
-                debug('[CallExpression]: injectedRewriter: %O', injectedRewriter);
+                const [, ...debugArgs] = buildDebugString({
+                  kind: 'CallExpression',
+                  filepath,
+                  specifierType,
+                  messageOrSpecifier: 'injecting rewriter function into AST',
+                  resultSpecifier: '(arbitrary dynamic)'
+                });
+
+                debug(...debugArgs);
 
                 const rewriteFnAst = template.expression.ast(injectedRewriter);
                 rewriteFnIdentifier = globalScope.generateUidIdentifier('_rewrite');
@@ -340,9 +383,16 @@ export default function transformRewriteImports(): PluginObj<State> {
                   ])
                 );
 
-              const debugString = `[CallExpression]: ${specifierType} first argument wrapped with rewrite function`;
+              const [debugString, ...debugArgs] = buildDebugString({
+                kind: 'CallExpression',
+                filepath,
+                specifierType,
+                messageOrSpecifier: 'first argument wrapped with rewrite function',
+                resultSpecifier: '(dynamic)'
+              });
+
               metadata.transformedImports.push(debugString);
-              debug(debugString);
+              debug(...debugArgs);
             }
           }
         }
@@ -351,41 +401,81 @@ export default function transformRewriteImports(): PluginObj<State> {
   };
 }
 
-function declarationHandler(
-  path:
-    | NodePath<util.ImportDeclaration>
-    | NodePath<util.ExportAllDeclaration>
-    | NodePath<util.ExportNamedDeclaration>,
-  state: State
-) {
-  const metadata = getLocalMetadata(state);
-  metadata.totalImports += 1;
+function declarationHandler(kind: string) {
+  return function (
+    path:
+      | NodePath<util.ImportDeclaration>
+      | NodePath<util.ExportAllDeclaration>
+      | NodePath<util.ExportNamedDeclaration>,
+    state: State
+  ) {
+    const metadata = getLocalMetadata(state);
+    metadata.totalImports += 1;
 
-  if (path.node.source && (state.opts.appendExtension || state.opts.replaceExtensions)) {
-    const importPath = path.node.source.value;
-    const specifierType = path.node.type.startsWith('Import') ? 'import' : 'export';
-    const filepath = getFilenameFromState(state);
+    if (
+      path.node.source &&
+      (state.opts.appendExtension || state.opts.replaceExtensions)
+    ) {
+      const importPath = path.node.source.value;
+      const specifierType = path.node.type.startsWith('Import') ? 'import' : 'export';
+      const filepath = getFilenameFromState(state);
 
-    const rewrittenPath = rewrite(importPath, {
-      ...state.opts,
-      recognizedExtensions: (state.opts.recognizedExtensions ||
-        defaultRecognizedExtensions) as string[],
-      filepath
-    });
+      debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
-    if (importPath === rewrittenPath) {
-      debug(
-        `[${getFilenameFromState(
-          state
-        )}]: ${specifierType} evaluated but unchanged: "${importPath}"`
-      );
-    } else {
-      path.node.source = util.stringLiteral(rewrittenPath);
-      const debugString = `[declarationHandler]: ${specifierType} "${importPath}" => "${rewrittenPath}"`;
-      metadata.transformedImports.push(debugString);
-      debug(debugString);
+      const rewrittenPath = rewrite(importPath, {
+        ...state.opts,
+        recognizedExtensions: (state.opts.recognizedExtensions ||
+          defaultRecognizedExtensions) as string[],
+        filepath
+      });
+
+      if (importPath === rewrittenPath) {
+        const [, ...debugArgs] = buildDebugString({
+          kind,
+          filepath,
+          specifierType,
+          messageOrSpecifier: 'evaluated but unchanged',
+          resultSpecifier: rewrittenPath
+        });
+
+        debug(...debugArgs);
+      } else {
+        path.node.source = util.stringLiteral(rewrittenPath);
+
+        const [debugString, ...debugArgs] = buildDebugString({
+          kind,
+          filepath,
+          specifierType,
+          messageOrSpecifier: `"${importPath}"`,
+          resultSpecifier: rewrittenPath
+        });
+
+        metadata.transformedImports.push(debugString);
+        debug(...debugArgs);
+      }
     }
-  }
+  };
+}
+
+function buildDebugString({
+  kind,
+  filepath,
+  specifierType,
+  messageOrSpecifier,
+  resultSpecifier
+}: {
+  kind: string;
+  filepath: string;
+  specifierType: string;
+  messageOrSpecifier: string;
+  resultSpecifier: string;
+}) {
+  return [
+    `[${kind}]<${filepath}>: ${specifierType} specifier ${messageOrSpecifier} => ${resultSpecifier}`,
+    `[${kind}]<%O>: ${specifierType} specifier ${messageOrSpecifier} => %O`,
+    filepath,
+    resultSpecifier
+  ] as const;
 }
 
 function getLocalMetadata(state: State) {
@@ -402,8 +492,8 @@ function getFilenameFromState(state: State) {
 }
 
 /**
- * This function rewrites an import/require specifier `importPath` given a
- * `replaceMap` and an `options` object. Throws if `importPath` is not a string.
+ * This function rewrites an import/require `specifier` given a `replaceMap` and
+ * an `options` object. Throws if `specifier` is not a string.
  */
 // ! This function is stringified and injected when transforming dynamic imports
 // ! so there must be no references to variables external to its scope. Also, no
@@ -411,12 +501,17 @@ function getFilenameFromState(state: State) {
 //
 // ! Note that all references to options.filepath are replaced by an inlined
 // ! string literal when this function is stringified.
+//
+// ! Note that all instances of \s*debugRewrite([^)]*);\s* in the function body
+// ! are deleted when this function is stringified.
 // istanbul ignore next
 const rewrite = (
   specifier: unknown,
   options: Pick<Options, 'appendExtension' | 'replaceExtensions'> &
     Required<Pick<Options, 'recognizedExtensions'>> & { filepath: string }
 ) => {
+  debugRewrite('entered rewrite function for specifier: %O', specifier);
+
   if (typeof specifier !== 'string') {
     throw new TypeError(
       `rewrite error: expected specifier of type string, not ${typeof specifier}`
@@ -430,14 +525,24 @@ const rewrite = (
         capturingGroups: string[]
       ]
     | undefined;
-  // ? https://github.com/microsoft/TypeScript/issues/9998
-  replacementMap = undefined as typeof replacementMap;
 
   if (options.replaceExtensions) {
     Object.entries(options.replaceExtensions).some(([target, replacement]) => {
+      debugRewrite(
+        'evaluating replaceExtensions entry: [key: %O, value: %O]',
+        target,
+        replacement
+      );
+
       if (target.startsWith('^') || target.endsWith('$')) {
         const targetRegExp = new RegExp(target);
         const capturingGroups = Array.from(specifier.match(targetRegExp) || []);
+
+        debugRewrite('entry key is regex: %O', targetRegExp);
+        debugRewrite(
+          'capturing groups match result on specifier: %O',
+          capturingGroups.length === 0 ? 'no matches' : capturingGroups
+        );
 
         if (capturingGroups.length) {
           replacementMap = [targetRegExp, replacement, capturingGroups];
@@ -445,15 +550,20 @@ const rewrite = (
         }
       } else if (specifier.endsWith(target)) {
         replacementMap = [target, replacement, []];
+        debugRewrite('entry key matches end of specifier: %O');
         return true;
       }
     });
   }
 
+  debugRewrite('replacement map: %O', replacementMap);
+
   let finalImportPath = specifier;
 
   if (replacementMap) {
     const [target, replacement, capturingGroups] = replacementMap;
+
+    debugRewrite('will call replacer as function: %O', typeof replacement !== 'string');
 
     finalImportPath = finalImportPath.replace(
       target,
@@ -463,6 +573,8 @@ const rewrite = (
     );
   }
 
+  debugRewrite('post-replacer result import path: %O', finalImportPath);
+
   const isRelative =
     finalImportPath.startsWith('./') ||
     finalImportPath.startsWith('.\\') ||
@@ -471,10 +583,20 @@ const rewrite = (
     finalImportPath === '.' ||
     finalImportPath === '..';
 
+  debugRewrite('is relative: %O', isRelative);
+
   if (options.appendExtension && isRelative) {
     const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
     const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
       finalImportPath
+    );
+
+    debugRewrite('might append extension');
+    debugRewrite('ends with slash: %O', endsWithSlash);
+    debugRewrite('basename is dots: %O', basenameIsDots);
+    debugRewrite(
+      'will call appendExtension as function: %O',
+      typeof options.appendExtension !== 'string'
     );
 
     const extensionToAppend =
@@ -485,6 +607,11 @@ const rewrite = (
             capturingGroups: [],
             filepath: options.filepath
           });
+
+    debugRewrite(
+      'extension to MAYBE append: %O',
+      extensionToAppend ?? 'will not append any extension'
+    );
 
     if (extensionToAppend !== undefined) {
       if (basenameIsDots) {
@@ -497,6 +624,7 @@ const rewrite = (
           });
 
         if (!hasRecognizedExtension) {
+          debugRewrite('extension was appended');
           finalImportPath = endsWithSlash
             ? finalImportPath + `index${extensionToAppend}`
             : finalImportPath + extensionToAppend;
@@ -504,6 +632,8 @@ const rewrite = (
       }
     }
   }
+
+  debugRewrite('post-append result FINAL import path: %O', finalImportPath);
 
   return finalImportPath;
 };
