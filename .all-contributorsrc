@@ -3,9 +3,7 @@
   "projectOwner": "Xunnamius",
   "repoType": "github",
   "repoHost": "https://github.com",
-  "files": [
-    "README.md"
-  ],
+  "files": ["README.md"],
   "imageSize": 100,
   "commit": false,
   "commitConvention": "angular",
@@ -15,14 +13,7 @@
       "name": "Bernard",
       "avatar_url": "https://avatars.githubusercontent.com/u/656017?v=4",
       "profile": "https://xunn.io/",
-      "contributions": [
-        "infra",
-        "code",
-        "doc",
-        "maintenance",
-        "test",
-        "review"
-      ]
+      "contributions": ["infra", "code", "doc", "maintenance", "test", "review"]
     }
   ],
   "contributorsPerLine": 7,
