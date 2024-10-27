@@ -272,19 +272,22 @@ These callback functions have the following signatures:
 type AppendExtensionCallback = (context: {
   specifier: string;
   capturingGroups: never[];
+  filepath: string;
 }) => string | undefined;
 
 type ReplaceExtensionsCallback = (context: {
   specifier: string;
   capturingGroups: string[];
+  filepath: string;
 }) => string;
 ```
 
-Where `specifier` is the [import/export specifier][5] being rewritten and
+Where `specifier` is the [import/export specifier][5] being rewritten,
 `capturingGroups` is a simple string array of capturing groups returned by
-[`String.prototype.match()`][6]. `capturingGroups` will always be an empty array
-except when it appears within a function value of a `replaceExtensions` entry
-that has a regular expression key.
+[`String.prototype.match()`][6], and `filename` is an absolute path to the file
+in which the rewrite is occurring. `capturingGroups` will always be an empty
+array except when it appears within a function value of a `replaceExtensions`
+entry that has a regular expression key.
 
 When provided as the value of `appendExtension`, a string containing an
 extension should be returned (including leading dot). When provided as the value
@@ -310,7 +313,7 @@ module.exports = {
         appendExtension: ({ specifier }) => {
           return specifier.endsWith('/no-ext') ||
             specifier.endsWith('..') ||
-            specifier == './another-thing'
+            specifier === './another-thing'
             ? undefined
             : '.mjs';
         },
@@ -320,7 +323,7 @@ module.exports = {
           '^packages/([^/]+)(/.+)?': ({ specifier, capturingGroups }) => {
             //              ^ capturing group #2: capturingGroups[2]
             if (
-              specifier == 'packages/root' ||
+              specifier === 'packages/root' ||
               specifier.startsWith('packages/root/')
             ) {
               return `./monorepo-js${capturingGroups[2] ?? '/'}`;
@@ -344,11 +347,22 @@ module.exports = {
 
 #### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
 
-The options passed to this plugin are [transpiled and injected][8] into the
-resulting AST when transforming dynamic imports and require statements [that do
-not have a string literal as the first argument][9]. Therefore, to be safe,
-**callback functions must not reference variables outside of their immediate
-[scope][10]**.
+When transforming dynamic imports and require statements [that do not have a
+string literal as the first argument][9], the options passed to this plugin are
+[transpiled and injected][8] into the resulting AST.
+
+> [!CAUTION]
+>
+> This means you take a slight performance hit when you do arbitrary dynamic
+> imports that cannot be statically analyzed (e.g.
+> `require(getMd5Hash() + '.txt')`). These types of dynamic imports are usually
+> code smell, but this library is built to accommodate them regardless.
+>
+> However, if you are not doing arbitrary dynamic imports, then this section is
+> of no relevance to you.
+
+Therefore, to be safe, **callback functions must not reference variables outside
+of their immediate [scope][10]**.
 
 Good:
 
@@ -514,7 +528,7 @@ Further documentation can be found under [`docs/`][x-repo-docs].
 ### Published Package Details
 
 This is a [CJS2 package][x-pkg-cjs-mojito] with statically-analyzable exports
-built by Babel for Node14 and above.
+built by Babel for Node.js versions that are not end-of-life.
 
 <details><summary>Expand details</summary>
 

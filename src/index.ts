@@ -108,7 +108,7 @@ export default function transformRewriteImports(): PluginObj<State> {
           clearTimeout(reporterTimeout);
         },
         exit(_, state) {
-          if (process.env.NODE_ENV != 'test') {
+          if (process.env.NODE_ENV !== 'test') {
             reporterTimeout = setTimeout(() => {
               if (!state.opts.silent) {
                 let totalGlobalImports = 0;
@@ -147,7 +147,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                         ? '  ---\n  '
                         : '└── '
                     }Rewrote ${totalTransformedImports} of ${totalGlobalImports} imports ${
-                      totalFiles == 1 ? 'in 1 file' : `across ${totalFiles} files`
+                      totalFiles === 1 ? 'in 1 file' : `across ${totalFiles} files`
                     }`
                   );
                 }
@@ -161,15 +161,15 @@ export default function transformRewriteImports(): PluginObj<State> {
       ExportNamedDeclaration: declarationHandler,
       // ? dynamic imports and require statements
       CallExpression(path, state) {
-        const isDynamicImport = path.node.callee?.type == 'Import';
+        const isDynamicImport = path.node.callee?.type === 'Import';
         const isRequire =
-          path.node.callee?.type == 'Identifier' && path.node.callee?.name == 'require';
+          path.node.callee?.type === 'Identifier' && path.node.callee?.name === 'require';
 
         const firstArgument = path.node.arguments?.[0] as
           | (typeof path.node.arguments)[0]
           | undefined;
 
-        const firstArgumentIsStringLiteral = firstArgument?.type == 'StringLiteral';
+        const firstArgumentIsStringLiteral = firstArgument?.type === 'StringLiteral';
 
         const { appendExtension, recognizedExtensions, replaceExtensions } = {
           ...state.opts,
@@ -199,7 +199,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                 replaceExtensions
               });
 
-              if (importPath == rewrittenPath) {
+              if (importPath === rewrittenPath) {
                 debug(
                   `[${getFilenameFromState(
                     state
@@ -236,7 +236,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                   },
                   (_key, value) => {
                     // ? Stringify any function expressions we encounter
-                    if (typeof value == 'function') {
+                    if (typeof value === 'function') {
                       const fnExprString = value.toString();
                       const fnExprId = `%&^#%%${pkgName}%%${
                         Object.keys(functionExpressionCache).length + 1
@@ -315,7 +315,7 @@ function declarationHandler(
         defaultRecognizedExtensions) as string[]
     });
 
-    if (importPath == rewrittenPath) {
+    if (importPath === rewrittenPath) {
       debug(
         `[${getFilenameFromState(
           state
@@ -356,7 +356,7 @@ const rewrite = (
   options: Pick<Options, 'appendExtension' | 'replaceExtensions'> &
     Required<Pick<Options, 'recognizedExtensions'>>
 ) => {
-  if (typeof specifier != 'string') {
+  if (typeof specifier !== 'string') {
     throw new TypeError(
       `rewrite error: expected specifier of type string, not ${typeof specifier}`
     );
@@ -396,7 +396,7 @@ const rewrite = (
 
     finalImportPath = finalImportPath.replace(
       target,
-      typeof replacement == 'string'
+      typeof replacement === 'string'
         ? replacement
         : replacement({ specifier, capturingGroups })
     );
@@ -407,8 +407,8 @@ const rewrite = (
     finalImportPath.startsWith('.\\') ||
     finalImportPath.startsWith('../') ||
     finalImportPath.startsWith('..\\') ||
-    finalImportPath == '.' ||
-    finalImportPath == '..';
+    finalImportPath === '.' ||
+    finalImportPath === '..';
 
   if (options.appendExtension && isRelative) {
     const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
@@ -417,7 +417,7 @@ const rewrite = (
     );
 
     const extensionToAppend =
-      typeof options.appendExtension == 'string'
+      typeof options.appendExtension === 'string'
         ? options.appendExtension
         : options.appendExtension({
             specifier,
