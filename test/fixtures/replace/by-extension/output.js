@@ -26,7 +26,7 @@ const _rewrite = (specifier, options) => {
       const [target, replacement, capturingGroups] = replacementMap;
       finalImportPath = finalImportPath.replace(
         target,
-        typeof replacement == 'string'
+        typeof replacement === 'string'
           ? replacement
           : replacement({
               specifier,
@@ -39,15 +39,15 @@ const _rewrite = (specifier, options) => {
       finalImportPath.startsWith('.\\') ||
       finalImportPath.startsWith('../') ||
       finalImportPath.startsWith('..\\') ||
-      finalImportPath == '.' ||
-      finalImportPath == '..';
+      finalImportPath === '.' ||
+      finalImportPath === '..';
     if (options.appendExtension && isRelative) {
       const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
       const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
         finalImportPath
       );
       const extensionToAppend =
-        typeof options.appendExtension == 'string'
+        typeof options.appendExtension === 'string'
           ? options.appendExtension
           : options.appendExtension({
               specifier,
@@ -78,21 +78,21 @@ const _rewrite = (specifier, options) => {
       '.ts': '.xts'
     }
   };
-import { name as pkgName } from 'package';
 import fs from 'node:fs';
+import { name as pkgName } from 'package';
 import { primary } from '.';
 import { secondary } from '..';
 import { tertiary } from '../..';
-import dirImport from './some-dir/';
 import jsConfig from './jsconfig.json';
 import projectConfig from './project.config.cjs';
+import dirImport from './some-dir/';
+import styles from './src/less/styles.less';
 import { add, double } from './src/numbers';
 import { curry } from './src/typed/curry.xts';
-import styles from './src/less/styles.less';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 
-export { triple, quadruple } from './lib/num-utils';
+export { quadruple, triple } from './lib/num-utils';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 

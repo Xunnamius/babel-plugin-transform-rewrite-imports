@@ -26,7 +26,7 @@ const _rewrite = (specifier, options) => {
       const [target, replacement, capturingGroups] = replacementMap;
       finalImportPath = finalImportPath.replace(
         target,
-        typeof replacement == 'string'
+        typeof replacement === 'string'
           ? replacement
           : replacement({
               specifier,
@@ -39,15 +39,15 @@ const _rewrite = (specifier, options) => {
       finalImportPath.startsWith('.\\') ||
       finalImportPath.startsWith('../') ||
       finalImportPath.startsWith('..\\') ||
-      finalImportPath == '.' ||
-      finalImportPath == '..';
+      finalImportPath === '.' ||
+      finalImportPath === '..';
     if (options.appendExtension && isRelative) {
       const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
       const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
         finalImportPath
       );
       const extensionToAppend =
-        typeof options.appendExtension == 'string'
+        typeof options.appendExtension === 'string'
           ? options.appendExtension
           : options.appendExtension({
               specifier,
@@ -76,22 +76,22 @@ const _rewrite = (specifier, options) => {
     appendExtension: '.mts',
     recognizedExtensions: ['.js', '.jsx', '.mjs', '.cjs', '.json', '.ts', '.less']
   };
-import { name as pkgName } from 'package';
 import fs from 'node:fs';
-import { primary } from './index.mts';
-import { secondary } from '../index.mts';
+import { name as pkgName } from 'package';
 import { tertiary } from '../../index.mts';
-import dirImport from '/some-dir/index';
+import { secondary } from '../index.mts';
+import { primary } from './index.mts';
 import jsConfig from './jsconfig.json';
 import projectConfig from './project.config.cjs';
 import projectConfig2 from './project.config.mjs';
+import styles from './src/less/styles.less';
 import { add, double } from './src/numbers.mts';
 import { curry } from './src/typed/curry.ts';
-import styles from './src/less/styles.less';
+import dirImport from '/some-dir/index';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 
-export { triple, quadruple } from './lib/num-utils.mts';
+export { quadruple, triple } from './lib/num-utils.mts';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 

@@ -26,7 +26,7 @@ const _rewrite = (specifier, options) => {
       const [target, replacement, capturingGroups] = replacementMap;
       finalImportPath = finalImportPath.replace(
         target,
-        typeof replacement == 'string'
+        typeof replacement === 'string'
           ? replacement
           : replacement({
               specifier,
@@ -39,15 +39,15 @@ const _rewrite = (specifier, options) => {
       finalImportPath.startsWith('.\\') ||
       finalImportPath.startsWith('../') ||
       finalImportPath.startsWith('..\\') ||
-      finalImportPath == '.' ||
-      finalImportPath == '..';
+      finalImportPath === '.' ||
+      finalImportPath === '..';
     if (options.appendExtension && isRelative) {
       const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
       const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(
         finalImportPath
       );
       const extensionToAppend =
-        typeof options.appendExtension == 'string'
+        typeof options.appendExtension === 'string'
           ? options.appendExtension
           : options.appendExtension({
               specifier,
@@ -81,21 +81,21 @@ const _rewrite = (specifier, options) => {
       '(.+?)\\.less$': '$1.css'
     }
   };
-import { name as pkgName } from '/absolute/path/to/project/package.json';
 import fs from 'node:fs';
-import { primary } from './index.mjs';
-import { secondary } from '../index.mjs';
 import { tertiary } from '../../index.mjs';
-import dirImport from './some-dir/index.mjs';
+import { secondary } from '../index.mjs';
+import { primary } from './index.mjs';
 import jsConfig from './jsconfig.json';
 import projectConfig from './project.config.cjs';
+import dirImport from './some-dir/index.mjs';
+import styles from './src/less/styles.css';
 import { add, double } from './src/numbers.mjs';
 import { curry } from './src/typed/curry.mjs';
-import styles from './src/less/styles.css';
+import { name as pkgName } from '/absolute/path/to/project/package.json';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 
-export { triple, quadruple } from './lib/num-utils.mjs';
+export { quadruple, triple } from './lib/num-utils.mjs';
 
 // Note that, unless otherwise configured, babel deletes type-only imports
 
