@@ -200,6 +200,7 @@
     "simple-git": "^3.27.0",
     "sort-package-json": "^2.10.1",
     "source-map-support": "^0.5.21",
+    "spellchecker": "^3.7.1",
     "strip-ansi": "^6.0.1",
     "text-extensions": "^3.0.0",
     "tsconfig-replace-paths": "^0.0.14",
