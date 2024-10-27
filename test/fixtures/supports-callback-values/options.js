@@ -7,7 +7,7 @@ module.exports = {
     appendExtension: ({ specifier }) => {
       return specifier.endsWith('/no-ext') ||
         specifier.endsWith('..') ||
-        specifier == './another-thing'
+        specifier === './another-thing'
         ? undefined
         : '.mjs';
     },
@@ -16,7 +16,7 @@ module.exports = {
       //         v capturing group #1: capturingGroups[1]
       '^packages/([^/]+)(/.+)?': ({ specifier, capturingGroups }) => {
         //              ^ capturing group #2: capturingGroups[2]
-        if (specifier == 'packages/root' || specifier.startsWith('packages/root/')) {
+        if (specifier === 'packages/root' || specifier.startsWith('packages/root/')) {
           return `./monorepo-js${capturingGroups[2] ?? '/'}`;
         } else if (!capturingGroups[2] || capturingGroups[2].startsWith('/src/index')) {
           return `@monorepo/$1`;

@@ -1,5 +1,5 @@
 const _rewrite = (specifier, options) => {
-    if (typeof specifier != 'string') {
+    if (typeof specifier !== 'string') {
       throw new TypeError(`rewrite error: expected specifier of type string, not ${typeof specifier}`);
     }
     let replacementMap;
@@ -22,16 +22,16 @@ const _rewrite = (specifier, options) => {
     let finalImportPath = specifier;
     if (replacementMap) {
       const [target, replacement, capturingGroups] = replacementMap;
-      finalImportPath = finalImportPath.replace(target, typeof replacement == 'string' ? replacement : replacement({
+      finalImportPath = finalImportPath.replace(target, typeof replacement === 'string' ? replacement : replacement({
         specifier,
         capturingGroups
       }));
     }
-    const isRelative = finalImportPath.startsWith('./') || finalImportPath.startsWith('.\\') || finalImportPath.startsWith('../') || finalImportPath.startsWith('..\\') || finalImportPath == '.' || finalImportPath == '..';
+    const isRelative = finalImportPath.startsWith('./') || finalImportPath.startsWith('.\\') || finalImportPath.startsWith('../') || finalImportPath.startsWith('..\\') || finalImportPath === '.' || finalImportPath === '..';
     if (options.appendExtension && isRelative) {
       const endsWithSlash = /(\/|\\)$/.test(finalImportPath);
       const basenameIsDots = /(^\.?\.(\/|\\)?$)|((\/|\\)\.?\.(\/|\\)?$)/.test(finalImportPath);
-      const extensionToAppend = typeof options.appendExtension == 'string' ? options.appendExtension : options.appendExtension({
+      const extensionToAppend = typeof options.appendExtension === 'string' ? options.appendExtension : options.appendExtension({
         specifier,
         capturingGroups: []
       });
