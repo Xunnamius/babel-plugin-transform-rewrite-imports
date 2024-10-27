@@ -1,3 +1,4 @@
+/* eslint-disable jest/prefer-importing-jest-globals */
 /* eslint-disable jest/require-hook */
 /* eslint-disable jest/no-conditional-in-test, jest/no-conditional-expect */
 

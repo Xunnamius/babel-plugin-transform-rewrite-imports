@@ -26,6 +26,7 @@ const rules = {
   'no-extra-boolean-cast': 'off',
   'no-empty': 'off',
   '@typescript-eslint/camelcase': 'off',
+  '@typescript-eslint/no-require-imports': 'off',
   '@typescript-eslint/explicit-function-return-type': 'off',
   '@typescript-eslint/explicit-module-boundary-types': 'off',
   '@typescript-eslint/prefer-ts-expect-error': 'warn',
@@ -43,7 +44,7 @@ const rules = {
     {
       argsIgnorePattern: '^_+',
       varsIgnorePattern: '^_+',
-      caughtErrorsIgnorePattern: '^ignored?\\d*$',
+      caughtErrorsIgnorePattern: String.raw`^ignored?\d*$`,
       caughtErrors: 'all'
     }
   ],
@@ -137,6 +138,7 @@ module.exports = {
       extends: [...xtends, 'plugin:jest/all', 'plugin:jest/style'],
       rules: {
         ...rules,
+        'jest/prefer-importing-jest': 'off',
         'jest/lowercase': 'off',
         'jest/consistent-test-it': 'off',
         'jest/require-top-level-describe': 'off',

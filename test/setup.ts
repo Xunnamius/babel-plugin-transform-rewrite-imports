@@ -1,3 +1,5 @@
+/* eslint-disable unicorn/import-style */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 /* eslint-disable unicorn/no-keyword-prefix */
 import { promises as fs } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -472,9 +474,9 @@ export interface NodeImportTestFixtureOptions {
 }
 
 // TODO: XXX: make this into a separate (mock-fixture) package (along w/ below)
-// eslint-disable-next-line @typescript-eslint/ban-types
-export interface FixtureContext<CustomOptions extends Record<string, unknown> = {}>
-  extends Partial<TestResultProvider>,
+export interface FixtureContext<
+  CustomOptions extends Record<string, unknown> = Record<string, unknown>
+> extends Partial<TestResultProvider>,
     Partial<TreeOutputProvider> /*,
     Partial<GitProvider>*/ {
   root: string;
@@ -501,7 +503,6 @@ export interface TreeOutputProvider {
 } */
 
 // TODO: XXX: make this into a separate (mock-fixture) package (along w/ below)
-// eslint-disable-next-line @typescript-eslint/ban-types
 export type FixtureAction<Context = FixtureContext> = (
   context: Context
 ) => Promise<unknown>;
@@ -927,10 +928,8 @@ export function describeRootFixture(): MockFixture {
 
 // TODO: XXX: make this into a separate (mock-fixture) package
 export async function withMockedFixture<
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  CustomOptions extends Record<string, unknown> = {},
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  CustomContext extends Record<string, unknown> = {}
+  CustomOptions extends Record<string, unknown> = Record<string, unknown>,
+  CustomContext extends Record<string, unknown> = Record<string, unknown>
 >({
   fn,
   testIdentifier,
@@ -1041,10 +1040,8 @@ export async function withMockedFixture<
 
 // TODO: XXX: make this into a separate (mock-fixture) package (along w/ above)
 export function mockFixtureFactory<
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  CustomOptions extends Record<string, unknown> = {},
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  CustomContext extends Record<string, unknown> = {}
+  CustomOptions extends Record<string, unknown> = Record<string, unknown>,
+  CustomContext extends Record<string, unknown> = Record<string, unknown>
 >(testIdentifier: string, options?: Partial<FixtureOptions & CustomOptions>) {
   return (
     fn: FixtureAction<

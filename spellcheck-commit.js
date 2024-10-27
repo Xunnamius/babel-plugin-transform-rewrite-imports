@@ -114,7 +114,12 @@ void (async () => {
       console.warn(`${typo}${suggestion}`);
     }
 
-    typos.length > 5 && console.warn(`${typos.length - 5} more...`);
-    typos.length && console.warn('---');
+    if (typos.length > 5) {
+      console.warn(`${typos.length - 5} more...`);
+    }
+
+    if (typos.length) {
+      console.warn('---');
+    }
   }
 })();

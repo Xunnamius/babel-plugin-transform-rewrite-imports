@@ -32,7 +32,6 @@ const lintConfig = {
     'lint-heading-word-length',
     'lint-no-heading-like-paragraph',
     'lint-no-heading-punctuation',
-    'lint-no-inline-padding',
     'lint-no-literal-urls',
     'lint-no-multiple-toplevel-headings',
     'lint-no-reference-like-url',
