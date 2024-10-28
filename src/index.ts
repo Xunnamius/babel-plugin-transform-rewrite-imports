@@ -19,7 +19,10 @@ const globalMetadata: {
 
 let reporterTimeout: NodeJS.Timeout | undefined;
 
-type State = PluginPass & { opts: Options };
+/**
+ * The shape of the internal state of the Babel plugin itself.
+ */
+export type State = PluginPass & { opts: Options };
 
 /**
  * A callback function provided as a value to `Options.appendExtension` or to an
