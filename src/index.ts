@@ -115,18 +115,18 @@ export default function transformRewriteImports(): PluginObj<State> {
 
           clearTimeout(reporterTimeout);
         },
-        exit(_, state) {
+        exit(_, { silent, verbose, appendExtension, replaceExtensions }) {
           // istanbul ignore next
           if (process.env.NODE_ENV !== 'test') {
             reporterTimeout = setTimeout(() => {
-              if (!state.opts.silent) {
+              if (!silent) {
                 let totalGlobalImports = 0;
                 let totalTransformedImports = 0;
                 let totalFiles = 0;
                 const globalMetadataEntries = Object.entries(globalMetadata);
 
                 globalMetadataEntries.forEach(([path, metadata]) => {
-                  if (state.opts.verbose) {
+                  if (verbose) {
                     // eslint-disable-next-line no-console
                     console.log(
                       `└── Rewrote ${metadata.transformedImports.length} of ${metadata.totalImports} imports in file ${path}`
@@ -143,7 +143,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                   totalFiles += 1;
                 });
 
-                if (!state.opts.appendExtension && !state.opts.replaceExtensions) {
+                if (!appendExtension && !replaceExtensions) {
                   // eslint-disable-next-line no-console
                   console.log(
                     `(${pkgName} was loaded without any meaningful configuration, making it a noop)`
@@ -152,9 +152,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                   // eslint-disable-next-line no-console
                   console.log(
                     `${
-                      state.opts.verbose && globalMetadataEntries.length
-                        ? '  ---\n  '
-                        : '└── '
+                      verbose && globalMetadataEntries.length ? '  ---\n  ' : '└── '
                     }Rewrote ${totalTransformedImports} of ${totalGlobalImports} imports ${
                       totalFiles === 1 ? 'in 1 file' : `across ${totalFiles} files`
                     }`
@@ -170,11 +168,11 @@ export default function transformRewriteImports(): PluginObj<State> {
       ExportNamedDeclaration: declarationHandler('ExportNamedDeclaration'),
       // ? Type-only imports using dynamic-import-style syntax
       TSImportType(path, state) {
-        const { appendExtension, recognizedExtensions, replaceExtensions } = {
-          ...state.opts,
-          recognizedExtensions: (state.opts.recognizedExtensions ||
-            defaultRecognizedExtensions) as string[]
-        };
+        const {
+          appendExtension,
+          recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
+          replaceExtensions
+        } = state.opts;
 
         const { argument: specifier } = path.node;
         const importPath = specifier.value;
@@ -425,10 +423,17 @@ function declarationHandler(kind: string) {
 
       debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
+      const {
+        appendExtension,
+        recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
+        replaceExtensions
+      } = state.opts;
+
       const rewrittenPath = rewrite(importPath, {
         ...state.opts,
-        recognizedExtensions: (state.opts.recognizedExtensions ||
-          defaultRecognizedExtensions) as string[],
+        appendExtension,
+        recognizedExtensions,
+        replaceExtensions,
         filepath
       });
 
