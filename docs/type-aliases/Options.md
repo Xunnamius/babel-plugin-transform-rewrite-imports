@@ -26,6 +26,21 @@ advanced use cases.
 undefined
 ```
 
+### injectDynamicRewriter?
+
+> `optional` **injectDynamicRewriter**: `"never"` \| `"only-if-necessary"`
+
+If `'only-if-necessary'`, the dynamic rewriter function will only be
+injected into the AST if necessary. If `'never'`, support for arbitrary
+dynamic imports that are not statically analyzable will be disabled and no
+rewriter function injection will occur.
+
+#### Default
+
+```ts
+'only-if-necessary'
+```
+
 ### recognizedExtensions?
 
 > `optional` **recognizedExtensions**: `string`[]
@@ -93,4 +108,4 @@ false
 
 ## Defined in
 
-[index.ts:63](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/cc466cb56f228ce8aca09d6383b0447e1eb55e3d/src/index.ts#L63)
+[index.ts:63](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/0db9c4c9e970eff7f8163f80446cbbfd7a6d287f/src/index.ts#L63)
