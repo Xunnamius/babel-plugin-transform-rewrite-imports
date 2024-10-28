@@ -242,13 +242,14 @@ export default function transformRewriteImports(): PluginObj<State> {
       },
       // ? Dynamic imports and require statements
       CallExpression(path, state) {
-        const isDynamicImport = path.node.callee?.type === 'Import';
+        const calleePath = path.get('callee');
+        const isDynamicImport = util.isImport(calleePath.node);
 
         const firstArgument = path.node.arguments?.[0] as
           | (typeof path.node.arguments)[0]
           | undefined;
 
-        const firstArgumentIsStringLiteral = firstArgument?.type === 'StringLiteral';
+        const firstArgumentIsStringLiteral = util.isStringLiteral(firstArgument);
 
         const {
           appendExtension,
@@ -257,9 +258,22 @@ export default function transformRewriteImports(): PluginObj<State> {
           requireLikeFunctions = defaultRequireLikeFunctions as unknown as string[]
         } = state.opts;
 
+        const isTargetCallExpressionIdentifier =
+          util.isIdentifier(calleePath.node) &&
+          requireLikeFunctions.includes(calleePath.node.name);
+
+        debug(`isTargetCallExpressionIdentifier: %O`, isTargetCallExpressionIdentifier);
+
+        const isTargetMemberExpressionFullname =
+          util.isMemberExpression(calleePath.node) &&
+          requireLikeFunctions.some((fullname) => calleePath.matchesPattern(fullname));
+
+        debug(`isTargetMemberExpressionFullname: %O`, isTargetMemberExpressionFullname);
+
         const isRequireLike =
-          path.node.callee?.type === 'Identifier' &&
-          requireLikeFunctions.includes(path.node.callee?.name);
+          isTargetCallExpressionIdentifier || isTargetMemberExpressionFullname;
+
+        debug(`isRequireLike: %O`, isRequireLike);
 
         if (isDynamicImport || isRequireLike) {
           const filepath = getFilenameFromState(state);
@@ -444,7 +458,7 @@ function declarationHandler(kind: string) {
       (state.opts.appendExtension || state.opts.replaceExtensions)
     ) {
       const importPath = path.node.source.value;
-      const specifierType = path.node.type.startsWith('Import') ? 'import' : 'export';
+      const specifierType = util.isImport(path.node) ? 'import' : 'export';
       const filepath = getFilenameFromState(state);
 
       debug(`saw ${specifierType} %O within %O`, importPath, filepath);
