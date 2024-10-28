@@ -10,6 +10,18 @@ const debugNamespace = pkgName;
 const debug = debugFactory(debugNamespace);
 const debugRewrite = debug.extend('rewrite');
 
+export const defaultRequireLikeFunctions = [
+  'require',
+  'require.resolve',
+  'System.import',
+  'jest.genMockFromModule',
+  'jest.mock',
+  'jest.unmock',
+  'jest.doMock',
+  'jest.dontMock',
+  'jest.requireActual'
+] as const;
+
 const globalMetadata: {
   [path: string]: {
     totalImports: number;
@@ -73,6 +85,17 @@ export type Options = {
    * @default {}
    */
   replaceExtensions?: Record<string, string | Callback<string>>;
+  /**
+   * Members of this array will be considered as "require-like functions," or
+   * functions that should be treated as if they were CJS `require(...)` (or ESM
+   * `import(...)`) functions. This is useful when, for instance, you want
+   * Jest's `jest.mock` and `jest.requireActual` functions to have their import
+   * specifiers transformed.
+   *
+   * If not overridden, `requireLikeFunctions` defaults to
+   * {@link defaultRequireLikeFunctions}.
+   */
+  requireLikeFunctions?: string[];
   /**
    * If true, this plugin will generate no output.
    *
@@ -220,8 +243,6 @@ export default function transformRewriteImports(): PluginObj<State> {
       // ? Dynamic imports and require statements
       CallExpression(path, state) {
         const isDynamicImport = path.node.callee?.type === 'Import';
-        const isRequire =
-          path.node.callee?.type === 'Identifier' && path.node.callee?.name === 'require';
 
         const firstArgument = path.node.arguments?.[0] as
           | (typeof path.node.arguments)[0]
@@ -229,13 +250,18 @@ export default function transformRewriteImports(): PluginObj<State> {
 
         const firstArgumentIsStringLiteral = firstArgument?.type === 'StringLiteral';
 
-        const { appendExtension, recognizedExtensions, replaceExtensions } = {
-          ...state.opts,
-          recognizedExtensions: (state.opts.recognizedExtensions ||
-            defaultRecognizedExtensions) as string[]
-        };
+        const {
+          appendExtension,
+          recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
+          replaceExtensions,
+          requireLikeFunctions = defaultRequireLikeFunctions as unknown as string[]
+        } = state.opts;
 
-        if (isDynamicImport || isRequire) {
+        const isRequireLike =
+          path.node.callee?.type === 'Identifier' &&
+          requireLikeFunctions.includes(path.node.callee?.name);
+
+        if (isDynamicImport || isRequireLike) {
           const filepath = getFilenameFromState(state);
 
           const importPath = firstArgumentIsStringLiteral
