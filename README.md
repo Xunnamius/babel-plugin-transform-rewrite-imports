@@ -144,7 +144,8 @@ the the following:
   substitution functions. However, transform-rewrite-imports is capable of more
   complex replacements (like handling intricate file extension changes) with
   support for a wider variety of specifier types while surfacing a simpler
-  interface.
+  interface. On the other hand, module-resolver handles more common use cases
+  out of the box, whereas transform-rewrite-imports must be configured manually.
 
 - [babel-plugin-add-import-extension][4]
 
@@ -374,8 +375,8 @@ transform-rewrite-imports will always scan [`ImportDeclaration`][11],
 [`TSImportType`][14], and dynamic import [`CallExpression`][15]s for specifiers.
 
 When it comes to call expressions specifically, `requireLikeFunctions` is used
-to determine which function calls are treated as if they were "dynamic imports".
-By default, `requireLikeFunctions` is set to:
+to determine which additional function calls will have their first arguments
+scanned for specifiers. By default, `requireLikeFunctions` is set to:
 
 ```typescript
 [
