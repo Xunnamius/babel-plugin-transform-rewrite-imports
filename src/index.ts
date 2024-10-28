@@ -97,6 +97,15 @@ export type Options = {
    */
   requireLikeFunctions?: string[];
   /**
+   * If `'only-if-necessary'`, the dynamic rewriter function will only be
+   * injected into the AST if necessary. If `'never'`, support for arbitrary
+   * dynamic imports that are not statically analyzable will be disabled and no
+   * rewriter function injection will occur.
+   *
+   * @default 'only-if-necessary'
+   */
+  injectDynamicRewriter?: 'never' | 'only-if-necessary';
+  /**
    * If true, this plugin will generate no output.
    *
    * @default false
@@ -253,9 +262,10 @@ export default function transformRewriteImports(): PluginObj<State> {
 
         const {
           appendExtension,
-          recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
           replaceExtensions,
-          requireLikeFunctions = defaultRequireLikeFunctions as unknown as string[]
+          recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
+          requireLikeFunctions = defaultRequireLikeFunctions as unknown as string[],
+          injectDynamicRewriter = 'only-if-necessary'
         } = state.opts;
 
         const isTargetCallExpressionIdentifier =
@@ -333,6 +343,17 @@ export default function transformRewriteImports(): PluginObj<State> {
                 metadata.transformedImports.push(debugString);
                 debug(...debugArgs);
               }
+            } else if (injectDynamicRewriter === 'never') {
+              const [, ...debugArgs] = buildDebugString({
+                kind: 'CallExpression',
+                filepath,
+                specifierType,
+                messageOrSpecifier:
+                  'warning: encountered an non-statically-analyzable dynamic import but injectDynamicRewriter === "never" so it was left unchanged',
+                resultSpecifier: '(warning)'
+              });
+
+              debug(...debugArgs);
             } else {
               const globalScope = path.scope.getProgramParent();
 

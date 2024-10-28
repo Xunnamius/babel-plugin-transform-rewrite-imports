@@ -198,6 +198,7 @@ Available options [can be found in the docs][10]:
   recognizedExtensions?: string[];
   replaceExtensions?: Record<string, string | Callback<string>>;
   requireLikeFunctions?: string[];
+  injectDynamicRewriter?: 'never' | 'only-if-necessary';
   silent?: boolean;
   verbose?: boolean;
 }
@@ -500,8 +501,9 @@ module.exports = {
 #### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
 
 When transforming dynamic imports and require statements [that do not have a
-string literal as the first argument][21], the options passed to this plugin are
-[transpiled and injected][22] into the resulting AST.
+string literal as the first argument][21], and [`injectDynamicRewriter`][22] is
+not set to `'never'`, the options passed to this plugin are [transpiled and
+injected][23] into the resulting AST.
 
 > \[!CAUTION]
 >
@@ -516,7 +518,7 @@ string literal as the first argument][21], the options passed to this plugin are
 > the AST.
 
 Therefore, to be safe, **callback functions must not reference variables outside
-of their immediate [scope][23]**.
+of their immediate [scope][24]**.
 
 Good:
 
@@ -561,7 +563,7 @@ module.exports = {
 
 Technically, you can get away with violating this rule if you're _sure_ you'll
 only ever use [dynamic imports/require statements with string literal
-arguments][24].
+arguments][25].
 
 ## Examples
 
@@ -671,15 +673,15 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
-> See the full output of this example [here][25].
+> See the full output of this example [here][26].
 
 ### Real-World Examples
 
 For some real-world examples of this babel plugin in action, check out
-[xscripts's `babel.config.js` file][26] (which uses transform-rewrite-imports to
+[xscripts's `babel.config.js` file][27] (which uses transform-rewrite-imports to
 replace both babel-plugin-module-resolver and tsconfig-replace-paths),
-[unified-utils][27], [this very repository][28], or just take a peek at the
-[test cases][29].
+[unified-utils][28], [this very repository][29], or just take a peek at the
+[test cases][30].
 
 ## Appendix
 
@@ -858,14 +860,15 @@ specification. Contributions of any kind welcome!
 [20]: ./test/fixtures/supports-callback-values/output.js
 [21]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
-[22]:
+[22]: ./docs/type-aliases/Options.md#injectdynamicrewriter
+[23]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
-[23]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
-[24]:
+[24]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
+[25]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
-[25]: ./test/fixtures/readme-examples-work/output.js
-[26]:
+[26]: ./test/fixtures/readme-examples-work/output.js
+[27]:
   https://github.com/Xunnamius/xscripts/blob/main/src/assets/config/_babel.config.js.ts
-[27]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
-[28]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
-[29]: ./test/fixtures
+[28]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[29]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
+[30]: ./test/fixtures
