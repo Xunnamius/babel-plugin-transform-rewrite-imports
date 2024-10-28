@@ -54,6 +54,19 @@ function that returns a string.
 {}
 ```
 
+### requireLikeFunctions?
+
+> `optional` **requireLikeFunctions**: `string`[]
+
+Members of this array will be considered as "require-like functions," or
+functions that should be treated as if they were CJS `require(...)` (or ESM
+`import(...)`) functions. This is useful when, for instance, you want
+Jest's `jest.mock` and `jest.requireActual` functions to have their import
+specifiers transformed.
+
+If not overridden, `requireLikeFunctions` defaults to
+[defaultRequireLikeFunctions](../variables/defaultRequireLikeFunctions.md).
+
 ### silent?
 
 > `optional` **silent**: `boolean`
@@ -80,4 +93,4 @@ false
 
 ## Defined in
 
-[index.ts:48](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/19e1588c04e6526fdd6fd5327755da13326abcaa/src/index.ts#L48)
+[index.ts:63](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/cc466cb56f228ce8aca09d6383b0447e1eb55e3d/src/index.ts#L63)

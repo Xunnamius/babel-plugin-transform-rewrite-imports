@@ -8,10 +8,12 @@
 
 - [Callback](type-aliases/Callback.md)
 - [Options](type-aliases/Options.md)
+- [State](type-aliases/State.md)
 
 ## Variables
 
 - [defaultRecognizedExtensions](variables/defaultRecognizedExtensions.md)
+- [defaultRequireLikeFunctions](variables/defaultRequireLikeFunctions.md)
 
 ## Functions
 

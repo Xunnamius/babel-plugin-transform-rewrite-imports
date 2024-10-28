@@ -6,14 +6,14 @@
 
 # Function: default()
 
-> **default**(): `PluginObj`\<`State`\>
+> **default**(): `PluginObj`\<[`State`](../type-aliases/State.md)\>
 
 A babel plugin that reliably rewrites import (and export) specifiers.
 
 ## Returns
 
-`PluginObj`\<`State`\>
+`PluginObj`\<[`State`](../type-aliases/State.md)\>
 
 ## Defined in
 
-[index.ts:101](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/19e1588c04e6526fdd6fd5327755da13326abcaa/src/index.ts#L101)
+[index.ts:127](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/cc466cb56f228ce8aca09d6383b0447e1eb55e3d/src/index.ts#L127)
