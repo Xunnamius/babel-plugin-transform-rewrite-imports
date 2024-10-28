@@ -24,7 +24,13 @@ const lintConfig = {
     'lint-first-heading-level',
     'lint-heading-increment',
     'lint-heading-whitespace',
-    'lint-list-item-style',
+    [
+      'lint-list-item-style',
+      {
+        checkListSpread: 'final',
+        ignoredFirstWords: ['transform-rewrite-imports', 'tsconfig-replace-paths']
+      }
+    ],
     'lint-no-duplicate-defined-urls',
     'lint-no-duplicate-headings-in-section',
     'lint-no-empty-sections',

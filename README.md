@@ -377,7 +377,7 @@ When it comes to call expressions specifically, `requireLikeFunctions` is used
 to determine which function calls are treated as if they were "dynamic imports".
 By default, `requireLikeFunctions` is set to:
 
-```TypeScript
+```typescript
 [
   'require',
   'require.resolve',
@@ -388,7 +388,7 @@ By default, `requireLikeFunctions` is set to:
   'jest.doMock',
   'jest.dontMock',
   'jest.requireActual'
-]
+];
 ```
 
 > Similar to `defaultRequireLikeFunctions`, these defaults are exported under
