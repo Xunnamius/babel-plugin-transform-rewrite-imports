@@ -12,12 +12,12 @@
 
 # babel-plugin-transform-rewrite-imports
 
-This babel plugin (1) reliably adds _extensions_ to import and export
+This Babel plugin (1) reliably adds _extensions_ to import and export
 _specifiers_ that do not already have one, (2) selectively replaces extensions
 of specifiers that do, and (3) can rewrite whole specifiers in intricate ways
 using simple yet powerful [replacement maps][1].
 
-All TypeScript and JavaScript flavors are supported depending on how babel is
+All TypeScript and JavaScript flavors are supported depending on how Babel is
 configured in the project.
 
 For example, something like this:
@@ -110,7 +110,7 @@ prior art.
 npm install --save-dev babel-plugin-transform-rewrite-imports
 ```
 
-And integrate the following snippet into your babel configuration:
+And integrate the following snippet into your Babel configuration:
 
 ```typescript
 module.exports = {
@@ -144,8 +144,7 @@ the the following:
   substitution functions. However, transform-rewrite-imports is capable of more
   complex replacements (like handling intricate file extension changes) with
   support for a wider variety of specifier types while surfacing a simpler
-  interface. On the other hand, module-resolver handles more common use cases
-  out of the box, whereas transform-rewrite-imports must be configured manually.
+  interface.
 
 - [babel-plugin-add-import-extension][4]
 
@@ -175,22 +174,36 @@ the the following:
   replacements of arbitrary dynamic imports at runtime and appending extensions
   to specifiers that would otherwise not have one.
 
-- [tsconfig-replace-paths][9] / tsconfig-paths
+- [tsconfig-replace-paths][9] / [tsconfig-paths][10] / [tscpaths][11]
 
-  tsconfig-replace-paths and its predecessor tsconfig-paths are extremely useful
-  for transpiling TypeScript projects. Unfortunately, these packages do not
-  support all the latest TypeScript/Babel AST features, and may fail to
-  consistently and correctly transform certain files. By mapping a project's
-  `tsconfig,json` `paths` value to a transform-rewrite-imports replacement map,
-  it becomes possible to very easily replace tsconfig-replace-paths et al in
-  their entirety.
+  tsconfig-replace-paths and its predecessors/alternatives tsconfig-paths and
+  tscpaths are extremely useful for transpiling TypeScript projects, as they
+  handle alias- and path- resolving use cases without additional configuration;
+  transform-rewrite-imports, on the other hand, must be fed path/alias
+  information from `tsconfig.json` manually.
+
+  Unfortunately, tsconfig-paths is not a Babel plugin and requires [patching
+  your runtime][12] while the others do not support all the latest
+  TypeScript/Babel AST features (like [`TsImportType`][13]) and therefore fail
+  to consistently and correctly transform certain files (especially certain
+  `.d.ts` files).
+
+  By mapping a project's `tsconfig.json` `paths` value to a replacement map
+  transform-rewrite-imports can understand, it becomes possible to very easily
+  replace tsconfig-replace-paths et al in their entirety. [Here's an
+  example][14] using transform-rewrite-imports to replace these plugins and
+  babel-plugin-module-resolver for transforming both sources and type
+  definitions. Essentially, this Babel configuration file maps an object of
+  aliases (the same alias object [accepted by babel-plugin-module-resolver][15])
+  derived from the project's `tsconfig.json` `paths` into a `replaceExtensions`
+  replacement map that transform-rewrite-imports can understand.
 
 ## Usage
 
-By default this plugin does not affect babel's output. You must explicitly
+By default this plugin does not affect Babel's output. You must explicitly
 configure this extension before any specifier will be rewritten.
 
-Available options [can be found in the docs][10]:
+More information on the available options can be found in [the docs][16]:
 
 ```typescript
 {
@@ -220,6 +233,8 @@ module.exports = {
 };
 ```
 
+> \[!TIP]
+>
 > Only relative import specifiers (that start with `./` or `../`) will be
 > considered for `appendExtension`. This means bare specifiers (e.g. built-in
 > packages and packages imported from `node_modules`) and absolute specifiers
@@ -257,6 +272,8 @@ appended to them (e.g. `index.ts` is rewritten as `index.ts.ts` when
 this behavior is undesired, ensure `appendExtension` is included in
 `recognizedExtensions`.
 
+> \[!WARNING]
+>
 > Note that specifying a custom value for `recognizedExtensions` overwrites the
 > default value entirely. To extend rather than overwrite, you can import the
 > default value from the package itself:
@@ -359,6 +376,8 @@ module.exports = {
 };
 ```
 
+> \[!TIP]
+>
 > If a key of `replaceExtensions` begins with `^` _or_ ends with `$`, it is
 > considered a regular expression instead of an extension. Regular expression
 > replacements support substitutions of capturing groups as well (e.g. `$1`,
@@ -371,9 +390,9 @@ extensions. This means an extensionless import specifier could be rewritten by
 instead of having `appendExtension` appended to it.
 
 When it comes to deciding what is and is not a specifier,
-transform-rewrite-imports will always scan [`ImportDeclaration`][11],
-[`ExportAllDeclaration`][12], [`ExportNamedDeclaration`][13],
-[`TSImportType`][14], and dynamic import [`CallExpression`][15]s for specifiers.
+transform-rewrite-imports will always scan [`ImportDeclaration`][17],
+[`ExportAllDeclaration`][18], [`ExportNamedDeclaration`][19],
+[`TSImportType`][13], and dynamic import [`CallExpression`][20]s for specifiers.
 
 When it comes to call expressions specifically, `requireLikeFunctions` is used
 to determine which additional function calls will have their first arguments
@@ -393,6 +412,8 @@ scanned for specifiers. By default, `requireLikeFunctions` is set to:
 ];
 ```
 
+> \[!TIP]
+>
 > Similar to `defaultRequireLikeFunctions`, these defaults are exported under
 > the name `defaultRequireLikeFunctions`.
 
@@ -402,10 +423,10 @@ specifier. You are free to tweak this functionality to suit your environment.
 
 ### Comprehensive Logging
 
-Like Babel itself, this plugin leverages [debug][16] under the hood for log
+Like Babel itself, this plugin leverages [debug][21] under the hood for log
 management. You can take advantage of this to peer into
 transform-rewrite-imports's innermost workings and deepest decision-making
-processes by [activating][17] the appropriate log level. For example, the
+processes by [activating][22] the appropriate log level. For example, the
 following will enable all logging related to this plugin:
 
 ```bash
@@ -434,9 +455,9 @@ type ReplaceExtensionsCallback = (context: {
 }) => string;
 ```
 
-Where `specifier` is the [import/export specifier][18] being rewritten,
+Where `specifier` is the [import/export specifier][23] being rewritten,
 `capturingGroups` is a simple string array of capturing groups returned by
-[`String.prototype.match()`][19], and `filename` is an absolute path to the file
+[`String.prototype.match()`][24], and `filename` is an absolute path to the file
 in which the rewrite is occurring. `capturingGroups` will always be an empty
 array except when it appears within a function value of a `replaceExtensions`
 entry that has a regular expression key. `filename` is taken directly from
@@ -454,7 +475,7 @@ have "/index" appended to the end before the callback is invoked. However, if
 the callback returns `undefined` (and the specifier was not matched in
 `replaceExtensions`), the specifier will not be modified in any way.
 
-By way of example (see the output of this example [here][20]):
+By way of example (see the output of this example [here][25]):
 
 ```typescript
 module.exports = {
@@ -501,9 +522,9 @@ module.exports = {
 #### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
 
 When transforming dynamic imports and require statements [that do not have a
-string literal as the first argument][21], and [`injectDynamicRewriter`][22] is
+string literal as the first argument][26], and [`injectDynamicRewriter`][27] is
 not set to `'never'`, the options passed to this plugin are [transpiled and
-injected][23] into the resulting AST.
+injected][28] into the resulting AST.
 
 > \[!CAUTION]
 >
@@ -518,7 +539,7 @@ injected][23] into the resulting AST.
 > the AST.
 
 Therefore, to be safe, **callback functions must not reference variables outside
-of their immediate [scope][24]**.
+of their immediate [scope][29]**.
 
 Good:
 
@@ -563,11 +584,11 @@ module.exports = {
 
 Technically, you can get away with violating this rule if you're _sure_ you'll
 only ever use [dynamic imports/require statements with string literal
-arguments][25].
+arguments][30].
 
 ## Examples
 
-With the following snippet integrated into your babel configuration:
+With the following snippet integrated into your Babel configuration:
 
 ```typescript
 const {
@@ -673,15 +694,17 @@ const anotherThing2 = require(_rewrite(someOtherVariable, _rewrite_options));
 
 ```
 
-> See the full output of this example [here][26].
+> \[!NOTE]
+>
+> See the full output of this example [here][31].
 
 ### Real-World Examples
 
-For some real-world examples of this babel plugin in action, check out
-[xscripts's `babel.config.js` file][27] (which uses transform-rewrite-imports to
+For some real-world examples of this Babel plugin in action, check out
+[xscripts's `babel.config.js` file][14] (which uses transform-rewrite-imports to
 replace both babel-plugin-module-resolver and tsconfig-replace-paths),
-[unified-utils][28], [this very repository][29], or just take a peek at the
-[test cases][30].
+[unified-utils][32], [this very repository][33], or just take a peek at the
+[test cases][34].
 
 ## Appendix
 
@@ -846,29 +869,34 @@ specification. Contributions of any kind welcome!
 [7]: https://www.npmjs.com/package/babel-plugin-replace-import-extension
 [8]: https://www.npmjs.com/package/babel-plugin-transform-rename-import
 [9]: https://www.npmjs.com/package/tsconfig-replace-paths
-[10]: ./docs/type-aliases/Options.md
-[11]: https://babeljs.io/docs/babel-types#importdeclaration
-[12]: https://babeljs.io/docs/babel-types#exportalldeclaration
-[13]: https://babeljs.io/docs/babel-types#exportnameddeclaration
-[14]: https://babeljs.io/docs/babel-types#tsimporttype
-[15]: https://babeljs.io/docs/babel-types#callexpression
-[16]: https://npm.im/debug
-[17]: https://www.npmjs.com/package/debug#usage
-[18]: https://nodejs.org/api/esm.html#terminology
-[19]:
-  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
-[20]: ./test/fixtures/supports-callback-values/output.js
-[21]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
-[22]: ./docs/type-aliases/Options.md#injectdynamicrewriter
-[23]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
-[24]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
-[25]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
-[26]: ./test/fixtures/readme-examples-work/output.js
-[27]:
+[10]: https://github.com/dividab/tsconfig-paths
+[11]: https://github.com/joonhocho/tscpaths
+[12]: https://github.com/dividab/tsconfig-paths?tab=readme-ov-file#how-to-use
+[13]: https://babeljs.io/docs/babel-types#tsimporttype
+[14]:
   https://github.com/Xunnamius/xscripts/blob/main/src/assets/config/_babel.config.js.ts
-[28]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
-[29]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
-[30]: ./test/fixtures
+[15]:
+  https://github.com/tleunen/babel-plugin-module-resolver/blob/master/DOCS.md#alias
+[16]: ./docs/type-aliases/Options.md
+[17]: https://babeljs.io/docs/babel-types#importdeclaration
+[18]: https://babeljs.io/docs/babel-types#exportalldeclaration
+[19]: https://babeljs.io/docs/babel-types#exportnameddeclaration
+[20]: https://babeljs.io/docs/babel-types#callexpression
+[21]: https://npm.im/debug
+[22]: https://www.npmjs.com/package/debug#usage
+[23]: https://nodejs.org/api/esm.html#terminology
+[24]:
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/match
+[25]: ./test/fixtures/supports-callback-values/output.js
+[26]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
+[27]: ./docs/type-aliases/Options.md#injectdynamicrewriter
+[28]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
+[29]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
+[30]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
+[31]: ./test/fixtures/readme-examples-work/output.js
+[32]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[33]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
+[34]: ./test/fixtures
