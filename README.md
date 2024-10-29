@@ -457,10 +457,10 @@ type ReplaceExtensionsCallback = (context: {
 
 Where `specifier` is the [import/export specifier][23] being rewritten,
 `capturingGroups` is a simple string array of capturing groups returned by
-[`String.prototype.match()`][24], and `filename` is an absolute path to the file
+[`String.prototype.match()`][24], and `filepath` is an absolute path to the file
 in which the rewrite is occurring. `capturingGroups` will always be an empty
 array except when it appears within a function value of a `replaceExtensions`
-entry that has a regular expression key. `filename` is taken directly from
+entry that has a regular expression key. `filepath` is taken directly from
 `babelOptions.filename`.
 
 When provided as the value of `appendExtension`, a string containing an
