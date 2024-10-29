@@ -251,6 +251,8 @@ export default function transformRewriteImports(): PluginObj<State> {
             metadata.transformedImports.push(debugString);
             debug(...debugArgs);
           }
+        } else {
+          debug('nothing to do, moving on');
         }
       },
       // ? Dynamic imports and require statements
@@ -463,7 +465,11 @@ export default function transformRewriteImports(): PluginObj<State> {
               metadata.transformedImports.push(debugString);
               debug(...debugArgs);
             }
+          } else {
+            debug('nothing to do, moving on');
           }
+        } else {
+          debug('saw nothing of interest, moving on');
         }
       }
     }
@@ -480,7 +486,7 @@ function declarationHandler(kind: string) {
     state: State
   ) {
     debug('---');
-    debug('visiting declaration');
+    debug('visiting: ImportDeclaration|ExportAllDeclaration|ExportNamedDeclaration');
 
     const metadata = getLocalMetadata(state);
     metadata.totalImports += 1;
@@ -533,6 +539,8 @@ function declarationHandler(kind: string) {
         metadata.transformedImports.push(debugString);
         debug(...debugArgs);
       }
+    } else {
+      debug('saw nothing of interest, moving on');
     }
   };
 }
