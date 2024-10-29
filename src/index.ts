@@ -147,7 +147,7 @@ export default function transformRewriteImports(): PluginObj<State> {
 
           clearTimeout(reporterTimeout);
         },
-        exit(_, { silent, verbose, appendExtension, replaceExtensions }) {
+        exit(_, { opts: { silent, verbose, appendExtension, replaceExtensions } }) {
           // istanbul ignore next
           if (process.env.NODE_ENV !== 'test') {
             reporterTimeout = setTimeout(() => {
@@ -479,7 +479,7 @@ function declarationHandler(kind: string) {
       (state.opts.appendExtension || state.opts.replaceExtensions)
     ) {
       const importPath = path.node.source.value;
-      const specifierType = util.isImport(path.node) ? 'import' : 'export';
+      const specifierType = util.isImportDeclaration(path.node) ? 'import' : 'export';
       const filepath = getFilenameFromState(state);
 
       debug(`saw ${specifierType} %O within %O`, importPath, filepath);
