@@ -7,7 +7,8 @@ import * as util from '@babel/types';
 import type { NodePath, PluginObj, PluginPass } from '@babel/core';
 
 const debugNamespace = pkgName;
-const debug = debugFactory(debugNamespace);
+// TODO: remove this colon hack once @-xun/debug and rejoinder drop
+const debug = debugFactory(debugNamespace + ':');
 const debugRewrite = debug.extend('rewrite');
 
 export const defaultRequireLikeFunctions = [
@@ -200,6 +201,9 @@ export default function transformRewriteImports(): PluginObj<State> {
       ExportNamedDeclaration: declarationHandler('ExportNamedDeclaration'),
       // ? Type-only imports using dynamic-import-style syntax
       TSImportType(path, state) {
+        debug('---');
+        debug('visiting: TSImportType');
+
         const {
           appendExtension,
           recognizedExtensions = defaultRecognizedExtensions as unknown as string[],
@@ -251,6 +255,9 @@ export default function transformRewriteImports(): PluginObj<State> {
       },
       // ? Dynamic imports and require statements
       CallExpression(path, state) {
+        debug('---');
+        debug('visiting: CallExpression');
+
         const calleePath = path.get('callee');
         const isDynamicImport = util.isImport(calleePath.node);
 
@@ -469,8 +476,12 @@ function declarationHandler(kind: string) {
       | NodePath<util.ImportDeclaration>
       | NodePath<util.ExportAllDeclaration>
       | NodePath<util.ExportNamedDeclaration>,
+    // ? Note that "ExportDefaultDeclaration" is something else we don't want
     state: State
   ) {
+    debug('---');
+    debug('visiting declaration');
+
     const metadata = getLocalMetadata(state);
     metadata.totalImports += 1;
 
@@ -541,7 +552,7 @@ function buildDebugString({
 }) {
   return [
     `[${kind}]<${filepath}>: ${specifierType} specifier ${messageOrSpecifier} => ${resultSpecifier}`,
-    `[${kind}]<%O>: ${specifierType} specifier ${messageOrSpecifier} => %O`,
+    `[%O]: ${specifierType} specifier ${messageOrSpecifier} => %O`,
     filepath,
     resultSpecifier
   ] as const;
