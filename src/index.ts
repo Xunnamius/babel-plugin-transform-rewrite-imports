@@ -292,7 +292,7 @@ export default function transformRewriteImports(): PluginObj<State> {
             ? firstArgument.value
             : '(not determinable)';
 
-          const specifierType = isDynamicImport ? 'dynamic import' : 'require';
+          const specifierType = isDynamicImport ? 'dynamic import' : 'require-like';
           const metadata = getLocalMetadata(state);
 
           metadata.totalImports += 1;
