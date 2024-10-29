@@ -39,4 +39,4 @@ The import/export specifier being evaluated by Babel.
 
 ## Defined in
 
-[index.ts:43](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/0db9c4c9e970eff7f8163f80446cbbfd7a6d287f/src/index.ts#L43)
+[index.ts:44](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/40f2b2bf6fa6d5f4f6faf3e8004138265cb3ed3d/src/index.ts#L44)

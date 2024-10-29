@@ -16,4 +16,4 @@ A babel plugin that reliably rewrites import (and export) specifiers.
 
 ## Defined in
 
-[index.ts:136](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/0db9c4c9e970eff7f8163f80446cbbfd7a6d287f/src/index.ts#L136)
+[index.ts:137](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/40f2b2bf6fa6d5f4f6faf3e8004138265cb3ed3d/src/index.ts#L137)

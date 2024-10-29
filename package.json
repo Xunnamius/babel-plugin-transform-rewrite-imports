@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-transform-rewrite-imports",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "Add an extension to import specifiers that do not already have one, replace the extensions of those that do, or even rewrite specifiers entirely.",
   "keywords": [
     "babel",
@@ -112,9 +112,9 @@
     "@types/debug": "^4.1.12",
     "@types/jest": "^29.5.14",
     "@types/lodash.mergewith": "^4.6.9",
-    "@types/node": "^22.8.1",
-    "@typescript-eslint/eslint-plugin": "^8.11.0",
-    "@typescript-eslint/parser": "^8.11.0",
+    "@types/node": "^22.8.2",
+    "@typescript-eslint/eslint-plugin": "^8.12.1",
+    "@typescript-eslint/parser": "^8.12.1",
     "@xunnamius/conventional-changelog-projector": "^1.2.2",
     "all-contributors-cli": "^6.26.1",
     "babel-jest": "^29.7.0",
