@@ -189,10 +189,10 @@ the the following:
   `.d.ts` files).
 
   By mapping a project's `tsconfig.json` `paths` value to a replacement map
-  transform-rewrite-imports can understand, it becomes possible to very easily
-  replace tsconfig-replace-paths et al in their entirety. [Here's an
-  example][14] using transform-rewrite-imports to replace these plugins and
-  babel-plugin-module-resolver for transforming both sources and type
+  transform-rewrite-imports can understand, it becomes possible to ditch
+  tsconfig-replace-paths et al and reduce dependency count. [Here's an
+  example][14] using transform-rewrite-imports to replace these plugins (along
+  with babel-plugin-module-resolver) for transforming both sources and type
   definitions. Essentially, this Babel configuration file maps an object of
   aliases (the same alias object [accepted by babel-plugin-module-resolver][15])
   derived from the project's `tsconfig.json` `paths` into a `replaceExtensions`
