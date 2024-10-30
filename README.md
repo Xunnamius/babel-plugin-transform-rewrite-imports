@@ -198,9 +198,8 @@ the following:
   tsconfig-replace-paths et al and reduce dependency count. [Here's an
   example][19] using transform-rewrite-imports to replace these plugins (and
   babel-plugin-module-resolver) for transforming both sources and type
-  definitions. Essentially, this Babel configuration file maps an object of
-  aliases derived from the project's `tsconfig.json` `paths` into a
-  [`replaceExtensions`][13] replacement map.
+  definitions. Essentially, this Babel configuration file maps the project's
+  `tsconfig.json` `paths` into a [`replaceExtensions`][13] replacement map.
 
 ## Usage
 
