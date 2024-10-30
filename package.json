@@ -139,7 +139,7 @@
     "eslint-plugin-jest": "^28.8.3",
     "eslint-plugin-module-resolver": "^1.5.0",
     "eslint-plugin-unicorn": "^56.0.0",
-    "execa": "^5.1.1",
+    "execa": "^8.0.1",
     "glob": "^11.0.0",
     "glob-gitignore": "^1.0.15",
     "husky": "^9.1.6",
