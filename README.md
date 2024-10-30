@@ -196,19 +196,18 @@ the following:
   By mapping a project's `tsconfig.json` `paths` value to a replacement map
   transform-rewrite-imports can understand, it becomes possible to ditch
   tsconfig-replace-paths et al and reduce dependency count. [Here's an
-  example][19] using transform-rewrite-imports to replace these plugins (along
-  with babel-plugin-module-resolver) for transforming both sources and type
+  example][19] using transform-rewrite-imports to replace these plugins (and
+  babel-plugin-module-resolver) for transforming both sources and type
   definitions. Essentially, this Babel configuration file maps an object of
-  aliases (the same alias object [accepted by babel-plugin-module-resolver][20])
-  derived from the project's `tsconfig.json` `paths` into a `replaceExtensions`
-  replacement map that transform-rewrite-imports can understand.
+  aliases derived from the project's `tsconfig.json` `paths` into a
+  [`replaceExtensions`][13] replacement map.
 
 ## Usage
 
 By default this plugin does not affect Babel's output. You must explicitly
 configure this extension before any specifier will be rewritten.
 
-More information on the available options can be found in [the docs][21]:
+More information on the available options can be found in [the docs][20]:
 
 ```typescript
 {
@@ -267,19 +266,19 @@ module.exports = {
 ```
 
 That is: **import specifiers that end with an extension included in
-`recognizedExtensions` will never have `appendExtension` appended to them**. All
-other imports, including those with a `.` in the file name (e.g.
+`recognizedExtensions` will never have [`appendExtension`][21] appended to
+them**. All other imports, including those with a `.` in the file name (e.g.
 `component.module.style.ts`), may be rewritten.
 
 `recognizedExtensions` is set to `['.js', '.jsx', '.mjs', '.cjs', '.json']` by
 default.
 
-If the value of `appendExtension` is not included in `recognizedExtensions`,
-then imports that already end in `appendExtension` will have `appendExtension`
-appended to them (e.g. `index.ts` is rewritten as `index.ts.ts` when
-`appendExtension: '.ts'` and `recognizedExtensions` is its default value). If
-this behavior is undesired, ensure `appendExtension` is included in
-`recognizedExtensions`.
+If the value of [`appendExtension`][21] is not included in
+`recognizedExtensions`, then imports that already end in [`appendExtension`][21]
+will have [`appendExtension`][21] appended to them (e.g. `index.ts` is rewritten
+as `index.ts.ts` when `appendExtension: '.ts'` and `recognizedExtensions` is its
+default value). If this behavior is undesired, ensure [`appendExtension`][21] is
+included in `recognizedExtensions`.
 
 > \[!WARNING]
 >
@@ -353,10 +352,10 @@ module.exports = {
 };
 ```
 
-`appendExtension` and `replaceExtensions` accept any suffix, not just those that
-begin with `.`; additionally, `replaceExtensions` accepts _regular expressions_.
-This allows you to partially or entirely rewrite a specifier rather than just
-its extension:
+[`appendExtension`][21] and `replaceExtensions` accept any suffix, not just
+those that begin with `.`; additionally, `replaceExtensions` accepts _regular
+expressions_. This allows you to partially or entirely rewrite a specifier
+rather than just its extension:
 
 ```typescript
 const {
@@ -395,21 +394,21 @@ module.exports = {
 > `$2`, etc).
 
 `replaceExtensions` is evaluated and replacements made _before_
-`appendExtension` is appended to specifiers with unrecognized or missing
+[`appendExtension`][21] is appended to specifiers with unrecognized or missing
 extensions. This means an extensionless import specifier could be rewritten by
 `replaceExtensions` to have a recognized extension, which would then be ignored
-instead of having `appendExtension` appended to it.
+instead of having [`appendExtension`][21] appended to it.
+
+### `requireLikeFunctions`
 
 When it comes to deciding what is and is not a specifier,
 transform-rewrite-imports will always scan [`ImportDeclaration`][22],
 [`ExportAllDeclaration`][23], [`ExportNamedDeclaration`][24],
 [`TSImportType`][18], and dynamic import [`CallExpression`][25]s for specifiers.
 
-### `requireLikeFunctions`
-
-When it comes to call expressions specifically, `requireLikeFunctions` is used
-to determine which additional function calls will have their first arguments
-scanned for specifiers. By default, `requireLikeFunctions` is set to:
+For call expressions specifically, `requireLikeFunctions` is used to determine
+which additional function calls will have their first arguments scanned for
+specifiers. By default, `requireLikeFunctions` is set to:
 
 ```typescript
 [
@@ -436,9 +435,9 @@ specifier. You are free to tweak this functionality to suit your environment.
 
 ## Advanced Usage
 
-`replaceExtensions` and `appendExtension` both accept function callbacks as
-values everywhere strings are accepted. This can be used to provide advanced
-replacement logic.
+[`replaceExtensions`][13] and [`appendExtension`][21] both accept function
+callbacks as values everywhere strings are accepted. This can be used to provide
+advanced replacement logic.
 
 These callback functions have the following signatures:
 
@@ -461,19 +460,19 @@ Where `specifier` is the [import/export specifier][2] being rewritten,
 [`String.prototype.match()`][26], and `filepath` is the absolute path to the
 original input file being transformed by Babel. `capturingGroups` will always be
 an empty array except when it appears within a function value of a
-`replaceExtensions` entry that has a regular expression key.
+[`replaceExtensions`][13] entry that has a regular expression key.
 
-When provided as the value of `appendExtension`, a string containing an
+When provided as the value of [`appendExtension`][21], a string containing an
 extension should be returned (including leading dot). When provided as the value
-of a `replaceExtensions` entry, a string containing the full specifier should be
-returned. When returning a full specifier, capturing group substitutions (e.g.
-$1, $2, etc) within the returned string will be honored.
+of a [`replaceExtensions`][13] entry, a string containing the full specifier
+should be returned. When returning a full specifier, capturing group
+substitutions (e.g. $1, $2, etc) within the returned string will be honored.
 
-Further, in the case of `appendExtension`, note that `specifier`, if its
+Further, in the case of [`appendExtension`][21], note that `specifier`, if its
 basename is `.` or `..` or if it ends in a directory separator (e.g. `/`), will
 have "/index" appended to the end before the callback is invoked. However, if
 the callback returns `undefined` (and the specifier was not matched in
-`replaceExtensions`), the specifier will not be modified in any way.
+[`replaceExtensions`][13]), the specifier will not be modified in any way.
 
 By way of example (see the output of this example [here][27]):
 
@@ -892,9 +891,8 @@ specification. Contributions of any kind welcome!
 [18]: https://babeljs.io/docs/babel-types#tsimporttype
 [19]:
   https://github.com/Xunnamius/xscripts/blob/main/src/assets/config/_babel.config.js.ts
-[20]:
-  https://github.com/tleunen/babel-plugin-module-resolver/blob/master/DOCS.md#alias
-[21]: ./docs/type-aliases/Options.md
+[20]: ./docs/type-aliases/Options.md
+[21]: #appendextension
 [22]: https://babeljs.io/docs/babel-types#importdeclaration
 [23]: https://babeljs.io/docs/babel-types#exportalldeclaration
 [24]: https://babeljs.io/docs/babel-types#exportnameddeclaration
