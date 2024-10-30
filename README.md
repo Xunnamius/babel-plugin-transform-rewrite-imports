@@ -910,7 +910,10 @@ specification. Contributions of any kind welcome!
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L130-L131
 [33]: https://npm.im/debug
 [34]: https://www.npmjs.com/package/debug#usage
-[35]: ./test/fixtures/readme-examples-work/output.js
+[35]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/test/fixtures/readme-examples-work/output.js
 [36]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
-[37]: https://github.com/Xunnamius/projector/blob/main/babel.config.js
-[38]: ./test/fixtures
+[37]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/babel.config.js
+[38]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/test/fixtures
