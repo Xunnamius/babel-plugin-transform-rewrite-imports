@@ -10,4 +10,4 @@
 
 ## Defined in
 
-[index.ts:14](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/bc746a21e0690faa47b9d98ed4abf9ff41a1b71d/src/index.ts#L14)
+[index.ts:14](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/472febf8375d3d991703bf05dc29b95ff98caea4/src/index.ts#L14)
