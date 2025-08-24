@@ -1,14 +1,12 @@
-// TODO: replace with 'package'
-import { name as pkgName } from '../package.json';
-import debugFactory from 'debug';
 import template from '@babel/template';
 import * as util from '@babel/types';
+import { createDebugLogger } from 'rejoinder';
+
+import { name as packageName } from 'rootverse:package.json';
 
 import type { NodePath, PluginObj, PluginPass } from '@babel/core';
 
-const debugNamespace = pkgName;
-// TODO: remove this colon hack once @-xun/debug and rejoinder drop
-const debug = debugFactory(debugNamespace + ':');
+const debug = createDebugLogger({ namespace: packageName });
 const debugRewrite = debug.extend('rewrite');
 
 export const defaultRequireLikeFunctions = [
@@ -34,6 +32,8 @@ let reporterTimeout: NodeJS.Timeout | undefined;
 
 /**
  * The shape of the internal state of the Babel plugin itself.
+ *
+ * @internal
  */
 export type State = PluginPass & { opts: Options };
 
@@ -67,6 +67,15 @@ export type Options = {
    * already have a recognized extension. Also accepts a callback function for
    * advanced use cases.
    *
+   * Note that only relative import specifiers (that start with `./` or `../`)
+   * will be considered for `appendExtension`.
+   *
+   * Also note that `replaceExtensions` is evaluated and replacements made
+   * _before_ `appendExtension` is appended to specifiers with unrecognized or
+   * missing extensions. This means an extensionless import specifier could be
+   * rewritten by `replaceExtensions` to have a recognized extension, which
+   * would then be ignored instead of having `appendExtension` appended to it.
+   *
    * @default undefined
    */
   appendExtension?: string | Callback<string | undefined>;
@@ -82,6 +91,12 @@ export type Options = {
    * a specifier is a regular expression, capturing group notation can be used
    * in the replacement. Replacements can either be a string or a callback
    * function that returns a string.
+   *
+   * Note that `replaceExtensions` is evaluated and replacements made _before_
+   * `appendExtension` is appended to specifiers with unrecognized or missing
+   * extensions. This means an extensionless import specifier could be rewritten
+   * by `replaceExtensions` to have a recognized extension, which would then be
+   * ignored instead of having `appendExtension` appended to it.
    *
    * @default {}
    */
@@ -179,7 +194,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                 if (!appendExtension && !replaceExtensions) {
                   // eslint-disable-next-line no-console
                   console.log(
-                    `(${pkgName} was loaded without any meaningful configuration, making it a noop)`
+                    `(${packageName} was loaded without any meaningful configuration, making it a noop)`
                   );
                 } else {
                   // eslint-disable-next-line no-console
@@ -408,7 +423,7 @@ export default function transformRewriteImports(): PluginObj<State> {
                     // ? Stringify any function expressions we encounter
                     if (typeof value === 'function') {
                       const fnExprString = value.toString();
-                      const fnExprId = `%&^#%%${pkgName}%%${
+                      const fnExprId = `%&^#%%${packageName}%%${
                         Object.keys(functionExpressionCache).length + 1
                       }#^&%`;
 
@@ -657,7 +672,11 @@ const rewrite = (
       target,
       typeof replacement === 'string'
         ? replacement
-        : replacement({ specifier, capturingGroups, filepath: options.filepath })
+        : replacement({
+            specifier,
+            capturingGroups,
+            filepath: options.filepath
+          })
     );
   }
 

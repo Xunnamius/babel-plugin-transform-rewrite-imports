@@ -1,5 +1,8 @@
-import pluginTester from 'babel-plugin-tester';
-import plugin from 'universe/index';
+// * These tests ensure the exported interfaces under test function as expected.
+
+import { pluginTester } from 'babel-plugin-tester';
+
+import plugin from 'universe:index.ts';
 
 // eslint-disable-next-line jest/require-hook
 pluginTester({

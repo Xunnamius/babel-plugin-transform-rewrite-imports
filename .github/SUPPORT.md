@@ -46,14 +46,16 @@ you for contribution 🎉, your efforts are greatly appreciated! 🙌🏿
 - Issues that go for an extended period without activity are subject to closure.
 
 [badge-issue-percentage]:
-  https://isitmaintained.com/badge/open/Xunnamius/unified-utils.svg
+  https://isitmaintained.com/badge/open/Xunnamius/babel-plugin-transform-rewrite-imports.svg
   'Open issues as a percentage of all issues'
 [badge-issue-resolution]:
-  https://isitmaintained.com/badge/resolution/Xunnamius/unified-utils.svg
+  https://isitmaintained.com/badge/resolution/Xunnamius/babel-plugin-transform-rewrite-imports.svg
   'Average time to resolve an issue'
-[choose-new-issue]: https://github.com/Xunnamius/unified-utils/issues/new/choose
+[choose-new-issue]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
 [github-blog]:
   https://github.com/blog/2119-add-reactions-to-pull-requests-issues-and-comments
 [link-issue-resolution]:
-  https://isitmaintained.com/project/Xunnamius/unified-utils
-[open-issues]: https://github.com/Xunnamius/unified-utils/issues?q=
+  https://isitmaintained.com/project/Xunnamius/babel-plugin-transform-rewrite-imports
+[open-issues]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues?q=

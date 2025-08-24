@@ -1,12 +1,4 @@
 {
-  "projectName": "babel-plugin-transform-rewrite-imports",
-  "projectOwner": "Xunnamius",
-  "repoType": "github",
-  "repoHost": "https://github.com",
-  "files": ["README.md"],
-  "imageSize": 100,
-  "commit": false,
-  "commitConvention": "angular",
   "contributors": [
     {
       "login": "Xunnamius",
@@ -16,6 +8,14 @@
       "contributions": ["infra", "code", "doc", "maintenance", "test", "review"]
     }
   ],
+  "projectName": "babel-plugin-transform-rewrite-imports",
+  "projectOwner": "Xunnamius",
+  "repoType": "github",
+  "repoHost": "https://github.com",
+  "files": ["README.md"],
+  "imageSize": 100,
+  "commit": false,
+  "commitConvention": "angular",
   "contributorsPerLine": 7,
   "linkToUsage": true
 }

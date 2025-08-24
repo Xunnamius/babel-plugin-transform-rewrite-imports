@@ -11,9 +11,9 @@ started, [take a look at this quick and easy guide][how-to-contribute]. 💜
 
 This repository uses a [fully automated][github-actions] [continuous
 linting][husky-cl] (CL), integration testing (CI), and deployment (CD)
-[projector][projector]-based pipeline for integrating PRs and publishing
-releases. The neat thing about a fully automated pipeline is that anyone
-anywhere can make a contribution quickly and with minimal tedium.
+[symbiote][symbiote]-based pipeline for integrating PRs and publishing releases.
+The neat thing about a fully automated pipeline is that anyone anywhere can make
+a contribution quickly and with minimal tedium.
 
 This repository makes extensive use of [debug][pkg-debug]. Should you wish to
 view all possible debugging output, [export
@@ -28,8 +28,10 @@ The ideal contributor flow is as follows:
    - You use `npm ci` here instead of `npm install` to [prevent unnecessary
      updates to `package.json` and `package-lock.json`][npm-ci], but if it makes
      more sense to use `npm install` feel free to use that instead.
-   - If `.env.example` exists, consider copying it to `.env` and configuring
-     sensible defaults.
+     - **If you're getting an EINTEGRITY error from npm, you need to delete
+       package-lock.json before running `npm install` (not `npm ci`).**
+   - If `.env.default` exists, consider copying it to `.env` for sensible
+     pre-configured defaults.
 3. Before making any changes, ensure all unit tests are passing with
    `npm run test`.
 4. _(optional but recommended)_ Create a new branch, usually off `main`.
@@ -76,21 +78,26 @@ likelihood your PR passes review:
 At this point, you're ready to create your PR and ✨ contribute ✨!
 
 [atomic-commits]: https://www.codewithjason.com/atomic-commits-testing
-[choose-new-issue]: https://github.com/Xunnamius/unified-utils/issues/new/choose
-[code-of-conduct]: /.github/CODE_OF_CONDUCT.md
+[choose-new-issue]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues/new/choose
+[code-of-conduct]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/.github/CODE_OF_CONDUCT.md
 [codecov]: https://about.codecov.io
 [conventional-commits]: https://www.conventionalcommits.org/en/v1.0.0#summary
 [cosmetic-commits]:
   https://github.com/rails/rails/pull/13771#issuecomment-32746700
-[fork]: https://github.com/Xunnamius/unified-utils/fork
+[fork]: https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/fork
 [github-actions]: https://github.com/features/actions
 [how-to-clone]:
   https://docs.github.com/en/free-pro-team@latest/github/creating-cloning-and-archiving-repositories/cloning-a-repository
 [how-to-contribute]: https://www.dataschool.io/how-to-contribute-on-github
-[husky-cl]: https://github.com/Xunnamius/unified-utils/tree/main/.husky
+[husky-cl]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/.husky
 [npm-ci]: https://docs.npmjs.com/cli/v6/commands/npm-ci
-[open-issues]: https://github.com/Xunnamius/unified-utils/issues?q=
+[open-issues]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/issues?q=
 [pkg-debug]: https://www.npmjs.com/package/debug
 [pkg-debug-wildcards]: https://www.npmjs.com/package/debug#wildcards
-[pr-compare]: https://github.com/Xunnamius/unified-utils/compare
-[projector]: https://github.com/Xunnamius/unified-utils#readme
+[pr-compare]:
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/compare
+[symbiote]: https://github.com/Xunnamius/symbiote#readme
