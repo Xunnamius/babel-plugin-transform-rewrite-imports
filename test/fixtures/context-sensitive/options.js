@@ -1,6 +1,6 @@
 module.exports = {
   title: 'facilitates context-sensitive rewrites of specifiers',
-  "fixtureOutputExt": ".d.ts",
+  fixtureOutputExt: '.d.ts',
   /**
    * @type {import('../../../src/index').Options}
    */

@@ -1,23 +1,23 @@
-export { oneBackLevel } from '..'
-export { oneBackLevelIndex } from '../'
-export { twoBackLevel } from '../..'
-export { twoBackLevelIndex } from '../../'
-export { somethingBack } from '../lib/something'
-export { somethingBackTest } from '../lib/something.test'
-export { something } from './lib/something'
-export { somethingTest } from './lib/something.test'
-export { something as another } from './lib/something'
-export { somethingTest as anotherTest } from './lib/something.test'
-export * as anotherModule from './lib/something'
-export * as anotherModuleTest from './lib/something.test'
-export * from './lib/something'
-export * from './lib/something.test'
-export { transform } from '@babel/core'
-export { replacer_something } from './lib/something.ts'
-export { replacer_somethingTest } from './lib/something.test.ts'
-export { replacer_something as replacer_another } from './lib/something.ts'
-export { replacer_something as replacer_anotherTest } from './lib/something.test.ts'
-export * as replacer_anotherModule from './lib/something.ts'
-export * as replacer_anotherModuleTest from './lib/something.test.ts'
-export * as replacer_something2 from './lib/something.ts'
-export * as replacer_something2Test from './lib/something.test.ts'
+export { oneBackLevel } from '..';
+export { oneBackLevelIndex } from '../';
+export { twoBackLevel } from '../..';
+export { twoBackLevelIndex } from '../../';
+export { somethingBack } from '../lib/something';
+export { somethingBackTest } from '../lib/something.test';
+export { something } from './lib/something';
+export { somethingTest } from './lib/something.test';
+export { something as another } from './lib/something';
+export { somethingTest as anotherTest } from './lib/something.test';
+export * as anotherModule from './lib/something';
+export * as anotherModuleTest from './lib/something.test';
+export * from './lib/something';
+export * from './lib/something.test';
+export { transform } from '@babel/core';
+export { replacer_something } from './lib/something.ts';
+export { replacer_somethingTest } from './lib/something.test.ts';
+export { replacer_something as replacer_another } from './lib/something.ts';
+export { replacer_something as replacer_anotherTest } from './lib/something.test.ts';
+export * as replacer_anotherModule from './lib/something.ts';
+export * as replacer_anotherModuleTest from './lib/something.test.ts';
+export * as replacer_something2 from './lib/something.ts';
+export * as replacer_something2Test from './lib/something.test.ts';

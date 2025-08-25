@@ -5,21 +5,32 @@ export declare function runWithInheritedIo(
 ): Promise<
   {
     all: string | unknown[] | string[] | Uint8Array | undefined;
-    stdio: import('rewritten-for-good:node_modules/execa/types/return/result-stdio.js').MapResultStdio<
+    stdio: import('rewritten-for-good:node_modules/execa/types/return/result-stdio.js', {
+      with: {
+        'resolution-mode': 'import'
+      }
+    }).MapResultStdio<
       | readonly [
-          import('rewritten-for-good:node_modules/execa/types/stdio/type.js').StdinOptionCommon<
-            false,
-            false
-          >,
-          import('rewritten-for-good:node_modules/execa/types/stdio/type.js').StdoutStderrOptionCommon<
-            false,
-            false
-          >,
-          import('rewritten-for-good:node_modules/execa/types/stdio/type.js').StdoutStderrOptionCommon<
-            false,
-            false
-          >,
-          ...import('rewritten-for-good:node_modules/execa/types/stdio/type.js').StdioExtraOptionCommon<false>[]
+          import('rewritten-for-good:node_modules/execa/types/stdio/type.js', {
+            with: {
+              'resolution-mode': 'import'
+            }
+          }).StdinOptionCommon<false, false>,
+          import('rewritten-for-good:node_modules/execa/types/stdio/type.js', {
+            with: {
+              'resolution-mode': 'import'
+            }
+          }).StdoutStderrOptionCommon<false, false>,
+          import('rewritten-for-good:node_modules/execa/types/stdio/type.js', {
+            with: {
+              'resolution-mode': 'import'
+            }
+          }).StdoutStderrOptionCommon<false, false>,
+          ...import('rewritten-for-good:node_modules/execa/types/stdio/type.js', {
+            with: {
+              'resolution-mode': 'import'
+            }
+          }).StdioExtraOptionCommon<false>[]
         ]
       | readonly [undefined, undefined, undefined]
       | readonly ['pipe', 'pipe', 'pipe']
@@ -35,14 +46,28 @@ export declare function runWithInheritedIo(
           | number
           | boolean
           | object
-          | readonly import('rewritten-for-good:node_modules/execa/types/ipc.js').JsonMessage[]
+          | readonly import('rewritten-for-good:node_modules/execa/types/ipc.js', {
+              with: {
+                'resolution-mode': 'import'
+              }
+            }).JsonMessage[]
           | {
-              readonly [
-                key: string
-              ]: import('rewritten-for-good:node_modules/execa/types/ipc.js').JsonMessage;
-              readonly [
-                key: number
-              ]: import('rewritten-for-good:node_modules/execa/types/ipc.js').JsonMessage;
+              readonly [key: string]: import(
+                'rewritten-for-good:node_modules/execa/types/ipc.js',
+                {
+                  with: {
+                    'resolution-mode': 'import'
+                  }
+                }
+              ).JsonMessage;
+              readonly [key: number]: import(
+                'rewritten-for-good:node_modules/execa/types/ipc.js',
+                {
+                  with: {
+                    'resolution-mode': 'import'
+                  }
+                }
+              ).JsonMessage;
             }
           | null
         )[];

@@ -32,6 +32,8 @@ import { replacer_something as replacer_otherTest } from './lib/something.test.j
 import replacer_anotherImport from './lib/something.jsx';
 import replacer_anotherImportTest from './lib/something.test.jsx';
 import replacer_another, { replacer_otherImport } from './lib/something.jsx';
-import replacer_anotherTest, { replacer_otherImportTest } from './lib/something.test.jsx';
+import replacer_anotherTest, {
+  replacer_otherImportTest
+} from './lib/something.test.jsx';
 import * as replacer_Something from './lib/something.jsx';
 import * as replacer_SomethingTest from './lib/something.test.jsx';

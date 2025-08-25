@@ -94,4 +94,3 @@ const thing8 = jest.dontMock('_specifier_');
 const thing9 = jest.requireActual('_specifier_');
 const thing10 = jest.require.A.c.tual('REPLACED');
 const thing11 = jestbest('REPLACED');
-

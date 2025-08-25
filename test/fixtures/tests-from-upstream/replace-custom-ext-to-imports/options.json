@@ -2,14 +2,7 @@
   "title": "should add the replace custom extension to import statements",
   "pluginOptions": {
     "appendExtension": ".jsx",
-    "recognizedExtensions": [
-      ".js",
-      ".ts",
-      ".jsx",
-      ".tsx",
-      ".mjs",
-      ".cjs"
-    ],
+    "recognizedExtensions": [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"],
     "replaceExtensions": {
       ".ts": ".jsx"
     }

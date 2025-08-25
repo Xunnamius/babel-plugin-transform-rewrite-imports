@@ -2,14 +2,7 @@
   "title": "should add the custom extension to export not observed (recognized) statements",
   "pluginOptions": {
     "appendExtension": ".jsx",
-    "recognizedExtensions": [
-      ".js",
-      ".ts",
-      ".jsx",
-      ".tsx",
-      ".mjs",
-      ".cjs"
-    ],
+    "recognizedExtensions": [".js", ".ts", ".jsx", ".tsx", ".mjs", ".cjs"],
     "replaceExtensions": {
       ".ts": ".jsx"
     }

@@ -6,7 +6,7 @@ module.exports = {
    */
   pluginOptions: {
     appendExtension: '.mts',
-    recognizedExtensions: [...defaultRecognizedExtensions, '.ts', '.less'],
+    recognizedExtensions: [...defaultRecognizedExtensions, '.ts', '.less']
   },
   babelOptions: {
     filename: '/fake/filepath.ts',

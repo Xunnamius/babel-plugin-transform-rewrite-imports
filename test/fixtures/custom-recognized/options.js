@@ -4,7 +4,7 @@ module.exports = {
    */
   pluginOptions: {
     appendExtension: '.mts',
-    recognizedExtensions: ['.less'],
+    recognizedExtensions: ['.less']
   },
   babelOptions: {
     filename: '/fake/filepath.ts',
