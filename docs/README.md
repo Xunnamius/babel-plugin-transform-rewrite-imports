@@ -1,20 +1,13 @@
-**babel-plugin-transform-rewrite-imports** • **Docs**
+**babel-plugin-transform-rewrite-imports**
 
 ***
 
 # babel-plugin-transform-rewrite-imports
 
-## Type Aliases
+## Modules
 
-- [Callback](type-aliases/Callback.md)
-- [Options](type-aliases/Options.md)
-- [State](type-aliases/State.md)
-
-## Variables
-
-- [defaultRecognizedExtensions](variables/defaultRecognizedExtensions.md)
-- [defaultRequireLikeFunctions](variables/defaultRequireLikeFunctions.md)
-
-## Functions
-
-- [default](functions/default.md)
+- [src](src/README.md)
+- [test/setup](test/setup/README.md)
+- [test/util](test/util/README.md)
+- [types/unique-filename](types/unique-filename/README.md)
+- [types/webpack](types/webpack/README.md)
