@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import { name as packageName } from 'package';
+import { name as packageName } from 'rootverse:package.json';
 
 import { primary } from './index.js';
 import dirImport from '../../../../../some-dir/index';
