@@ -107,7 +107,18 @@ prior art.
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Install](#install)
+- [Comparison with Prior Art](#comparison-with-prior-art)
 - [Usage](#usage)
+  - [`appendExtension`](#appendextension)
+  - [`recognizedExtensions`](#recognizedextensions)
+  - [`replaceExtensions`](#replaceextensions)
+  - [`requireLikeFunctions`](#requirelikefunctions)
+  - [`injectDynamicRewriter`](#injectdynamicrewriter)
+- [Advanced Usage](#advanced-usage)
+  - [Rewriting Dynamic Imports and Requires with Non-Literal Arguments](#rewriting-dynamic-imports-and-requires-with-non-literal-arguments)
+- [Comprehensive Logging](#comprehensive-logging)
+- [Examples](#examples)
+  - [Real-World Examples](#real-world-examples)
 - [Appendix](#appendix)
   - [Published Package Details](#published-package-details)
   - [License](#license)
@@ -364,9 +375,8 @@ module.exports = {
 };
 ```
 
-Since specifier comparisons are made using
-[`String.endsWith`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith)
-without splitting on directory separators or any other characters,
+Since specifier comparisons are made using [`String.endsWith`][39] without
+splitting on directory separators or any other characters,
 [`appendExtension`][21] and `replaceExtensions` accept any suffix, not just
 those that begin with `.`; additionally, `replaceExtensions` accepts _regular
 expressions_. This allows you to partially or entirely rewrite a specifier
@@ -454,9 +464,7 @@ By default, a dynamic rewriter is injected only if necessary. Set this to
 `"never"` to ensure a dynamic rewriter is _never_ injected into the the output
 regardless of any perceived necessity.
 
-Refer to
-[the Advanced Usage section](#rewriting-dynamic-imports-and-requires-with-non-literal-arguments)
-for more details.
+Refer to [the Advanced Usage section][11] for more details.
 
 ## Advanced Usage
 
@@ -903,8 +911,6 @@ specification. Contributions of any kind welcome!
   https://dev.to/jakobjingleheimer/configuring-commonjs-es-modules-for-nodejs-12ed#publish-only-a-cjs-distribution-with-property-exports
 [x-pkg-dual-package-hazard]:
   https://nodejs.org/api/packages.html#dual-package-hazard
-[x-pkg-esm-wine]:
-  https://dev.to/jakobjingleheimer/configuring-commonjs-es-modules-for-nodejs-12ed#esm-source-and-distribution
 [x-pkg-exports-conditions]:
   https://webpack.js.org/guides/package-exports#reference-syntax
 [x-pkg-exports-module-key]:
@@ -973,6 +979,8 @@ specification. Contributions of any kind welcome!
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/test/fixtures/readme-examples-work/output.js
 [36]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
 [37]:
-  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/babel.config.js
+  https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/babel.config.cjs
 [38]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/test/fixtures
+[39]:
+  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/endsWith
