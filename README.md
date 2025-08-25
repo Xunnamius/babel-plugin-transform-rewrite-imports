@@ -1,7 +1,7 @@
 <!-- symbiote-template-region-start 1 -->
 
 <p align="center" width="100%">
-  <img width="300" src="https://raw.githubusercontent.com/Xunnamius/babel-plugin-transform-rewrite-imports/refs/heads/main/logo.png">
+  <img width="500" src="https://raw.githubusercontent.com/Xunnamius/babel-plugin-transform-rewrite-imports/refs/heads/main/logo.png">
 </p>
 
 <p align="center" width="100%">
