@@ -88,9 +88,9 @@
     "test:packages:all:unit": "symbiote test --env NODE_NO_WARNINGS=1 --tests unit type --scope unlimited --coverage"
   },
   "dependencies": {
-    "@babel/template": "^7.25.9",
-    "@babel/types": "^7.26.0",
-    "core-js": "^3.38.1",
+    "@babel/template": "^7.27.2",
+    "@babel/types": "^7.28.2",
+    "core-js": "^3.45.1",
     "rejoinder": "^2.0.3"
   },
   "devDependencies": {
