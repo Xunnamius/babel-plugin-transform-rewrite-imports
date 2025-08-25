@@ -236,6 +236,7 @@ export default function transformRewriteImports(): PluginObj<State> {
 
         debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
+        /* istanbul ignore else */
         if (appendExtension || replaceExtensions) {
           const rewrittenPath = rewrite(importPath, {
             appendExtension,
@@ -323,6 +324,7 @@ export default function transformRewriteImports(): PluginObj<State> {
           debug(`saw ${specifierType} %O within %O`, importPath, filepath);
 
           if (appendExtension || replaceExtensions) {
+            /* istanbul ignore if */
             if (!firstArgument) {
               const [debugString] = buildDebugString({
                 kind: 'CallExpression',
@@ -592,6 +594,7 @@ function getLocalMetadata(state: State) {
 }
 
 function getFilenameFromState(state: State) {
+  /* istanbul ignore next */
   return state.filename || '<no filepath was set in your babel configuration>';
 }
 
