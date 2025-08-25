@@ -41,7 +41,7 @@ export const NODE_VERSIONS_UNDER_TEST = browserslist('maintained node versions')
   (v) => v.split(' ').join('@')
 );
 
-export const defaultFixtures = mockFixturesFactory(
+export const withMockedFixtures = mockFixturesFactory(
   [dummyNpmPackageFixture, npmCopyPackageFixture, dummyFilesFixture, runTestFixture],
   {
     performCleanup: true,
