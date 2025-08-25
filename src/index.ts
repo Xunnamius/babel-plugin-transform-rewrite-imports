@@ -1,3 +1,5 @@
+import assert from 'node:assert';
+
 import template from '@babel/template';
 import * as util from '@babel/types';
 import { createDebugLogger } from 'rejoinder';
@@ -278,9 +280,7 @@ export default function transformRewriteImports(): PluginObj<State> {
         const calleePath = path.get('callee');
         const isDynamicImport = util.isImport(calleePath.node);
 
-        const firstArgument = path.node.arguments?.[0] as
-          | (typeof path.node.arguments)[0]
-          | undefined;
+        const firstArgument = path.node.arguments[0];
 
         const firstArgumentIsStringLiteral = util.isStringLiteral(firstArgument);
 
@@ -460,14 +460,15 @@ export default function transformRewriteImports(): PluginObj<State> {
                 });
               }
 
-              path
-                .get('arguments')[0]
-                .replaceWith(
-                  util.callExpression(rewriteFnIdentifier, [
-                    firstArgument,
-                    rewriteOptionsObjIdentifier
-                  ])
-                );
+              const pathArguments = path.get('arguments')[0];
+              assert(pathArguments);
+
+              pathArguments.replaceWith(
+                util.callExpression(rewriteFnIdentifier, [
+                  firstArgument,
+                  rewriteOptionsObjIdentifier
+                ])
+              );
 
               const [debugString, ...debugArgs] = buildDebugString({
                 kind: 'CallExpression',
