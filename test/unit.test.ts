@@ -2,7 +2,7 @@
 
 import { pluginTester } from 'babel-plugin-tester';
 
-import plugin from 'universe:index.ts';
+import plugin from 'universe';
 
 // eslint-disable-next-line jest/require-hook
 pluginTester({
