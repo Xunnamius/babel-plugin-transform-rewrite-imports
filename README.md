@@ -230,7 +230,8 @@ the following:
 By default this plugin does not affect Babel's output. You must explicitly
 configure this extension before any specifier will be rewritten.
 
-More information on the available options can be found in [the docs][20]:
+More information on the available options can be found in [the
+docs][x-repo-docs]:
 
 ```typescript
 {
@@ -554,7 +555,7 @@ module.exports = {
 ### Rewriting Dynamic Imports and Requires with Non-Literal Arguments
 
 When transforming dynamic imports and require statements [that do not have a
-string literal as the first argument][28], and [`injectDynamicRewriter`][29] is
+string literal as the first argument][28], and [`injectDynamicRewriter`][20] is
 not set to `'never'`, the options passed to this plugin are [transpiled and
 injected][30] into the resulting AST.
 
@@ -956,7 +957,7 @@ specification. Contributions of any kind welcome!
 [18]: https://babeljs.io/docs/babel-types#tsimporttype
 [19]:
   https://github.com/Xunnamius/symbiote/blob/main/src/assets/transformers/_babel.config.cjs.ts
-[20]: ./docs/type-aliases/Options.md
+[20]: ./docs/src/type-aliases/Options.md#injectdynamicrewriter
 [21]: #appendextension
 [22]: https://babeljs.io/docs/babel-types#importdeclaration
 [23]: https://babeljs.io/docs/babel-types#exportalldeclaration
@@ -967,7 +968,6 @@ specification. Contributions of any kind welcome!
 [27]: ./test/fixtures/supports-callback-values/output.js
 [28]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/code.ts#L38-L39
-[29]: ./docs/type-aliases/Options.md#injectdynamicrewriter
 [30]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/50186e4dafbe022390727985edd14c2af9c85cb2/test/fixtures/supports-callback-values/output.js#L75-L97
 [31]: https://developer.mozilla.org/en-US/docs/Glossary/Scope
