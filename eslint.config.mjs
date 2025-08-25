@@ -15,10 +15,9 @@ const config = await moduleExport({
 });
 
 /* Add custom config objects here, such as those disabling certain rules */
-config
-  .push
+config.push(
   // ? Paths listed here are ignored by Eslint and related tooling.
-  // { ignores: [] },
+  { ignores: ['**/test/integration/assets/**/*'] }
   // * Configs applying to both JavaScript & TypeScript files (all extensions)
   // ? Keep in mind that JS files can use @ts-check and "become" TS files,
   // ? hence the existence of this block. Logically, most rules should be
@@ -43,7 +42,7 @@ config
   //     'no-restricted-syntax': 'off'
   //   }
   // }
-  ();
+);
 
 export default config;
 

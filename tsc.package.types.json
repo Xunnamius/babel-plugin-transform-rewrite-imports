@@ -33,6 +33,7 @@
     "**/ignore.*",
     "**/ignore.*/**/*",
     "**/*.ignore.*",
-    "**/*.ignore.*/**/*"
+    "**/*.ignore.*/**/*",
+    "test/integration/assets/**/*"
   ]
 }
