@@ -8,7 +8,7 @@
 
 > **default**(): `PluginObj`\<`State`\>
 
-Defined in: [src/index.ts:154](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L154)
+Defined in: [src/index.ts:154](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L154)
 
 A babel plugin that reliably rewrites import (and export) specifiers.
 

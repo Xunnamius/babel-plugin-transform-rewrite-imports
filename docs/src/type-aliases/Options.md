@@ -8,7 +8,7 @@
 
 > **Options** = `object`
 
-Defined in: [src/index.ts:66](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L66)
+Defined in: [src/index.ts:66](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L66)
 
 The options that can be passed to this plugin from babel.
 
@@ -18,7 +18,7 @@ The options that can be passed to this plugin from babel.
 
 > `optional` **appendExtension**: `string` \| [`Callback`](Callback.md)\<`string` \| `undefined`\>
 
-Defined in: [src/index.ts:83](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L83)
+Defined in: [src/index.ts:83](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L83)
 
 This string will be appended to all relative import specifiers that do not
 already have a recognized extension. Also accepts a callback function for
@@ -45,7 +45,7 @@ undefined
 
 > `optional` **injectDynamicRewriter**: `"never"` \| `"only-if-necessary"`
 
-Defined in: [src/index.ts:125](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L125)
+Defined in: [src/index.ts:125](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L125)
 
 If `'only-if-necessary'`, the dynamic rewriter function will only be
 injected into the AST if necessary. If `'never'`, support for arbitrary
@@ -64,7 +64,7 @@ rewriter function injection will occur.
 
 > `optional` **recognizedExtensions**: `string`[]
 
-Defined in: [src/index.ts:89](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L89)
+Defined in: [src/index.ts:89](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L89)
 
 Members of this array will be considered a "recognized extension".
 
@@ -80,7 +80,7 @@ defaultRecognizedExtensions
 
 > `optional` **replaceExtensions**: `Record`\<`string`, `string` \| [`Callback`](Callback.md)\<`string`\>\>
 
-Defined in: [src/index.ts:105](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L105)
+Defined in: [src/index.ts:105](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L105)
 
 Map of specifiers to their replacements. Specifiers can be strings or
 regular expressions (i.e. strings that start with ^ and/or end with $). If
@@ -106,7 +106,7 @@ ignored instead of having `appendExtension` appended to it.
 
 > `optional` **requireLikeFunctions**: `string`[]
 
-Defined in: [src/index.ts:116](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L116)
+Defined in: [src/index.ts:116](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L116)
 
 Members of this array will be considered as "require-like functions," or
 functions that should be treated as if they were CJS `require(...)` (or ESM
@@ -123,7 +123,7 @@ If not overridden, `requireLikeFunctions` defaults to
 
 > `optional` **silent**: `boolean`
 
-Defined in: [src/index.ts:131](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L131)
+Defined in: [src/index.ts:131](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L131)
 
 If true, this plugin will generate no output.
 
@@ -139,7 +139,7 @@ false
 
 > `optional` **verbose**: `boolean`
 
-Defined in: [src/index.ts:137](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/457e072ce7310b4a930c6a9b79d7ebab69545419/src/index.ts#L137)
+Defined in: [src/index.ts:137](https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/04cb03720cd5c4b4ccc3763758fd11307ea668ef/src/index.ts#L137)
 
 If true, this plugin will generate more output than usual.
 
