@@ -8,10 +8,10 @@
 
 import fs from 'node:fs';
 
-import { toAbsolutePath, toPath } from '@-xun/fs';
+import { toAbsolutePath, toDirname, toPath } from '@-xun/fs';
 import browserslist from 'browserslist';
 
-import { name as packageName } from 'rootverse:package.json';
+import { name as packageName, version as packageVersion } from 'rootverse:package.json';
 
 import {
   dummyFilesFixture,
@@ -47,8 +47,8 @@ export const withMockedFixtures = mockFixturesFactory(
     performCleanup: true,
     packageUnderTest: {
       attributes: { polyrepo: true, cjs: true },
-      json: { name: 'dummy-package' },
-      root: toAbsolutePath('/does/not/exist')
+      json: require('rootverse:package.json'),
+      root: toAbsolutePath(toDirname(require.resolve('rootverse:package.json')))
     },
     runWith: {
       binary: 'npx',
@@ -67,38 +67,38 @@ export const withMockedFixtures = mockFixturesFactory(
     initialVirtualFiles: {
       'package.json': {
         name: 'dummy-pkg',
-        dependencies: { '${packageName}': '${packageVersion}' }
+        dependencies: { [packageName]: packageVersion }
       },
-      'babel.config.js': `
-      module.exports = {
-        parserOpts: { strictMode: true },
-        plugins: [
-          '@babel/plugin-proposal-export-default-from',
-          '@babel/plugin-syntax-import-assertions',
-          [
-            '${packageName}',
-            { appendExtension: '.js' }
-          ]
-        ],
-        presets: [
-          [
-            '@babel/preset-env',
-            {
-              // ? Leave import syntax alone
-              modules: false,
-              targets: 'maintained node versions'
-            }
-          ],
-          [
-            '@babel/preset-typescript',
-            {
-              allowDeclareFields: true,
-              // ? This needs to be here or unused imports are elided
-              onlyRemoveTypeImports: true
-            }
-          ]
-        ]
-      };
+      'babel.config.js': /*js*/ `
+module.exports = {
+  parserOpts: { strictMode: true },
+  plugins: [
+    '@babel/plugin-proposal-export-default-from',
+    '@babel/plugin-syntax-import-assertions',
+    [
+      '${packageName}',
+      { appendExtension: '.js' }
+    ]
+  ],
+  presets: [
+    [
+      '@babel/preset-env',
+      {
+        // ? Leave import syntax alone
+        modules: false,
+        targets: 'maintained node versions'
+      }
+    ],
+    [
+      '@babel/preset-typescript',
+      {
+        allowDeclareFields: true,
+        // ? This needs to be here or unused imports are elided
+        onlyRemoveTypeImports: true
+      }
+    ]
+  ]
+};
     `,
       'code-1.ts': fs.readFileSync(`${__dirname}/assets/code-1.ts`, 'utf8'),
       'code-2.cjs': fs.readFileSync(`${__dirname}/assets/code-2.cjs`, 'utf8'),

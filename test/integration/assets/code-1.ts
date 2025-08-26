@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 
-import { name as packageName } from 'rootverse:package.json';
+import { name as pkgName } from 'package';
 
 import { primary } from '.';
 import { secondary } from '..';

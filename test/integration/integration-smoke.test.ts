@@ -1,4 +1,3 @@
-/* eslint-disable jest/no-standalone-expect */
 /* eslint-disable jest/require-hook */
 
 // * These are tests that ensure this plugin works (1) with the babel versions
@@ -56,11 +55,13 @@ for (const nodeVersion of NODE_VERSIONS_UNDER_TEST) {
     const pkgsString = pkgs.join(', ');
 
     const count = counter++;
-    const title = `${count}. works with ${pkgsString[0]!} using ${nodeVersion}`;
+    const title = `${count}. works with ${pkgs[0]!} using ${nodeVersion}`;
 
     debug(`registered test: ${title}`);
+    debug(`packages under test: ${pkgsString}`);
 
-    (process.env.NO_CONCURRENT ? it : it.concurrent)(title, async () => {
+    // eslint-disable-next-line jest/valid-title
+    it(title, async () => {
       expect.hasAssertions();
 
       debug(`started running test: ${title}`);

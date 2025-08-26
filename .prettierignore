@@ -62,3 +62,4 @@ __*__
 
 # Custom
 !test/fixtures/**
+test/integration/assets/**
