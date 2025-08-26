@@ -6,7 +6,7 @@
 
 <p align="center" width="100%">
 <!-- symbiote-template-region-end -->
-Reliably add/replace extensions of select import specifiers, or even rewrite them entirely!
+Reliably add/replace extensions of select import specifiers or just rewrite them entirely!
 <!-- symbiote-template-region-start 2 -->
 </p>
 
