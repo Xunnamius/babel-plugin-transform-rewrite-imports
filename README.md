@@ -977,7 +977,7 @@ specification. Contributions of any kind welcome!
 [34]: https://www.npmjs.com/package/debug#usage
 [35]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/tree/main/test/fixtures/readme-examples-work/output.js
-[36]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.js
+[36]: https://github.com/Xunnamius/unified-utils/blob/main/babel.config.cjs
 [37]:
   https://github.com/Xunnamius/babel-plugin-transform-rewrite-imports/blob/main/babel.config.cjs
 [38]:
